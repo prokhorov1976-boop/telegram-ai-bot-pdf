@@ -1,0 +1,122 @@
+import os
+import jwt
+import json
+from typing import Optional, Dict, Tuple
+
+def verify_jwt_token(token: str) -> Tuple[bool, Optional[Dict], Optional[str]]:
+    """
+    Проверяет JWT токен и возвращает payload
+    
+    Returns:
+        (success: bool, payload: dict or None, error: str or None)
+    """
+    try:
+        jwt_secret = os.environ.get('JWT_SECRET', 'default-jwt-secret-change-in-production')
+        payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
+        return True, payload, None
+    except jwt.ExpiredSignatureError:
+        return False, None, 'Token expired'
+    except jwt.InvalidTokenError:
+        return False, None, 'Invalid token'
+    except Exception as e:
+        return False, None, str(e)
+
+def extract_token_from_headers(headers: Dict) -> Optional[str]:
+    """
+    Извлекает JWT токен из заголовков Authorization
+    Поддерживает форматы:
+    - Authorization: Bearer <token>
+    - X-Authorization: Bearer <token> (после прокси)
+    """
+    auth_header = headers.get('Authorization') or headers.get('authorization')
+    x_auth_header = headers.get('X-Authorization') or headers.get('x-authorization')
+    
+    token_header = auth_header or x_auth_header
+    
+    if not token_header:
+        return None
+    
+    if token_header.startswith('Bearer '):
+        return token_header[7:]
+    
+    return token_header
+
+def require_auth(event: dict) -> Tuple[bool, Optional[Dict], Dict]:
+    """
+    Middleware для проверки авторизации
+    
+    Returns:
+        (authorized: bool, user_payload: dict or None, error_response: dict)
+    """
+    headers = event.get('headers', {})
+    token = extract_token_from_headers(headers)
+    
+    if not token:
+        return False, None, {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Authorization required'}),
+            'isBase64Encoded': False
+        }
+    
+    success, payload, error = verify_jwt_token(token)
+    
+    if not success:
+        return False, None, {
+            'statusCode': 401,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': error or 'Invalid token'}),
+            'isBase64Encoded': False
+        }
+    
+    return True, payload, {}
+
+def get_tenant_id_from_request(event: dict) -> Tuple[Optional[int], Optional[Dict]]:
+    """
+    Извлекает tenant_id из JWT токена, query параметров или body
+    Возвращает (tenant_id, error_response)
+    """
+    authorized, payload, error_response = require_auth(event)
+    
+    if not authorized:
+        return None, error_response
+    
+    user_role = payload.get('role')
+    user_tenant_id = payload.get('tenant_id')
+    
+    # Для tenant_admin всегда используем их tenant_id
+    if user_role == 'tenant_admin':
+        return user_tenant_id, None
+    
+    # Для super_admin пытаемся найти tenant_id в query params
+    query_params = event.get('queryStringParameters') or {}
+    requested_tenant_id = query_params.get('tenant_id')
+    
+    # Если нет в query, пытаемся найти в body (для POST/PUT запросов)
+    if not requested_tenant_id:
+        try:
+            body = json.loads(event.get('body', '{}'))
+            requested_tenant_id = body.get('tenantId') or body.get('tenant_id')
+        except:
+            pass
+    
+    if requested_tenant_id:
+        try:
+            requested_tenant_id = int(requested_tenant_id)
+        except ValueError:
+            return None, {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Invalid tenant_id format'}),
+                'isBase64Encoded': False
+            }
+        
+        return requested_tenant_id, None
+    
+    # Если super_admin не указал tenant_id - ошибка
+    return None, {
+        'statusCode': 400,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps({'error': 'tenant_id required for super admin'}),
+        'isBase64Encoded': False
+    }

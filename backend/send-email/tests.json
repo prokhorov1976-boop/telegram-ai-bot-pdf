@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Send email with template",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "template_key": "tariff_created",
+        "to_email": "test@example.com",
+        "variables": {
+          "email": "user@example.com",
+          "password": "test123",
+          "login_url": "https://example.com/login"
+        }
+      },
+      "expectedStatus": 500
+    }
+  ]
+}

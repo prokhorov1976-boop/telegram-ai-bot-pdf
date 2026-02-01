@@ -1,0 +1,53 @@
+{
+  "tests": [
+    {
+      "name": "Process payment notification without metadata",
+      "method": "POST",
+      "body": {
+        "event": "payment.succeeded",
+        "object": {
+          "id": "test-payment-123",
+          "status": "succeeded",
+          "amount": {
+            "value": "1000.00",
+            "currency": "RUB"
+          },
+          "description": "Test payment"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ok": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create tenant with API keys copy",
+      "method": "POST",
+      "body": {
+        "event": "payment.succeeded",
+        "object": {
+          "id": "test-api-keys-copy-1",
+          "status": "succeeded",
+          "amount": {
+            "value": "9975.00",
+            "currency": "RUB"
+          },
+          "description": "Test tenant creation",
+          "metadata": {
+            "tenant_name": "Test Hotel API",
+            "tenant_slug": "test-hotel-api",
+            "owner_email": "test@test-api-keys.com",
+            "owner_phone": "+79991234567",
+            "tariff_id": "basic"
+          }
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ok": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

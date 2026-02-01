@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Auth required for embeddings settings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

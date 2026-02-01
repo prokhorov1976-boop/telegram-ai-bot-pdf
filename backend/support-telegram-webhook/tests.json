@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "POST - Receive admin reply from Telegram",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "message": {
+          "message_id": 999,
+          "text": "Здравствуйте! Чем могу помочь?",
+          "reply_to_message": {
+            "message_id": 123
+          }
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ok": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

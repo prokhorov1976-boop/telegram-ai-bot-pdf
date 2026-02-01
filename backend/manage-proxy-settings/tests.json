@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get proxy settings (requires tenant_id)",
+      "method": "GET",
+      "path": "/?tenant_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "use_proxy_openai": "boolean",
+        "proxy_openai": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

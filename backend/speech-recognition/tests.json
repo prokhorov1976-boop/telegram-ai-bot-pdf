@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Test speech recognition disabled",
+      "method": "POST",
+      "headers": {
+        "X-Tenant-Id": "1"
+      },
+      "body": {
+        "audio": "test_base64_audio"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "enabled": false,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test missing tenant header",
+      "method": "POST",
+      "body": {
+        "audio": "test_audio"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "X-Tenant-Id header required"
+      }
+    }
+  ]
+}

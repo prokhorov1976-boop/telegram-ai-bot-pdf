@@ -1,0 +1,77 @@
+<!-- AI Bot Widget - Вставьте этот код перед закрывающим тегом </body> -->
+<script>
+(function() {
+    // Создаем контейнер для виджета
+    var widget = document.createElement('div');
+    widget.id = 'ai-bot-widget-container';
+    document.body.appendChild(widget);
+
+    // Добавляем стили
+    var style = document.createElement('style');
+    style.textContent = `
+        #ai-bot-widget-container { position: fixed; bottom: 20px; right: 20px; z-index: 999999; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        #ai-bot-button { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; transition: transform 0.3s ease; }
+        #ai-bot-button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        #ai-bot-button svg { width: 28px; height: 28px; color: white; }
+        #ai-bot-chat { position: absolute; bottom: 80px; right: 0; width: 380px; height: 600px; max-height: calc(100vh - 120px); background: white; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); display: none; flex-direction: column; overflow: hidden; animation: slideUp 0.3s ease; }
+        #ai-bot-chat.open { display: flex; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        #ai-bot-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+        #ai-bot-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+        #ai-bot-close { background: none; border: none; color: white; cursor: pointer; padding: 4px; display: flex; }
+        #ai-bot-close:hover { opacity: 0.8; }
+        #ai-bot-iframe { flex: 1; border: none; width: 100%; height: 100%; }
+        @media (max-width: 480px) {
+            #ai-bot-widget-container { bottom: 10px; right: 10px; }
+            #ai-bot-chat { width: calc(100vw - 20px); height: calc(100vh - 100px); bottom: 80px; right: -5px; }
+            #ai-bot-button { width: 56px; height: 56px; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // HTML структура виджета
+    widget.innerHTML = `
+        <button id="ai-bot-button" aria-label="Открыть чат">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </button>
+        <div id="ai-bot-chat">
+            <div id="ai-bot-header">
+                <h3>AI Ассистент</h3>
+                <button id="ai-bot-close" aria-label="Закрыть чат">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <iframe id="ai-bot-iframe" src="" title="AI Bot Chat"></iframe>
+        </div>
+    `;
+
+    // JavaScript логика
+    var CHAT_URL = 'https://p56134400.poehali.dev'; // ЗАМЕНИТЕ НА ВАШ URL
+    var button = document.getElementById('ai-bot-button');
+    var chat = document.getElementById('ai-bot-chat');
+    var closeBtn = document.getElementById('ai-bot-close');
+    var iframe = document.getElementById('ai-bot-iframe');
+    var isOpen = false;
+
+    function toggleChat() {
+        isOpen = !isOpen;
+        if (isOpen) {
+            chat.classList.add('open');
+            if (!iframe.src) iframe.src = CHAT_URL;
+        } else {
+            chat.classList.remove('open');
+        }
+    }
+
+    button.addEventListener('click', toggleChat);
+    closeBtn.addEventListener('click', toggleChat);
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isOpen) toggleChat();
+    });
+})();
+</script>

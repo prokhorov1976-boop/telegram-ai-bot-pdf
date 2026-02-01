@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Reject unauthorized access",
+      "method": "POST",
+      "body": {
+        "tenant_id": 777,
+        "slug": "sales"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

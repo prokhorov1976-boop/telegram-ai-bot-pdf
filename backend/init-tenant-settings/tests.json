@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Test tenant initialization",
+      "method": "POST",
+      "body": {
+        "tenant_id": 999
+      },
+      "expectedStatus": 404,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

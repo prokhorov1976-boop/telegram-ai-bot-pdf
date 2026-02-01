@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Get reindexing status (auth required)",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

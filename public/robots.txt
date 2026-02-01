@@ -1,8 +1,19 @@
+User-agent: *
+Allow: /
+
+# Основные поисковики - приоритетная индексация
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
+
+User-agent: Yandex
+Allow: /
+Crawl-delay: 0
+Clean-param: utm_source&utm_medium&utm_campaign
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 0
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +21,30 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+# AI боты для индексации контента
+User-agent: GPTBot
 Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Omgilibot
+Allow: /
+
+# Sitemap для быстрой индексации
+Sitemap: https://ai-ru.ru/sitemap.xml
+
+# Хост для Яндекса
+Host: ai-ru.ru

@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get automation settings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "cronjob_api_key": "string",
+        "cronjob_enabled": "boolean"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

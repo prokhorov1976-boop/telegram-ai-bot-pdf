@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Update widget settings",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "button_color": "#ff0000",
+        "header_title": "Test Bot"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

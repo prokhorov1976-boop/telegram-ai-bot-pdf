@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Test get consent logs list",
+      "method": "GET",
+      "path": "/?action=list",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "consents": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

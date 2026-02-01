@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get tenant by valid slug",
+      "method": "GET",
+      "path": "/?slug=sales",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "tenant_id": "number",
+        "slug": "sales"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

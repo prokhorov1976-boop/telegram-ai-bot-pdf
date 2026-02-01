@@ -1,0 +1,26 @@
+{
+  "tests": [
+    {
+      "name": "Get all support sessions",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "sessions": "array"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Mark session as read",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "session_id": "test-session-123"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    }
+  ]
+}

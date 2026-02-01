@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Clean up embeddings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ok": "boolean",
+        "deleted_embeddings": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

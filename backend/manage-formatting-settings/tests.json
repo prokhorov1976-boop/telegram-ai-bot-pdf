@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Get formatting settings (unauthorized)",
+      "method": "GET",
+      "path": "/?tenant_id=1",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Unauthorized"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

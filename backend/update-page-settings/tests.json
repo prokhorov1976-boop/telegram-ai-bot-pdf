@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Update page settings requires auth",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "settings": {
+          "page_title": "Test Title"
+        },
+        "quickQuestions": []
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial",
+      "description": "Тест проверяет что обновление настроек требует авторизации"
+    }
+  ]
+}

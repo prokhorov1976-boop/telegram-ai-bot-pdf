@@ -1,0 +1,6 @@
+psycopg2-binary>=2.9.0
+openai>=1.0.0
+requests>=2.31.0
+httpx>=0.24.0
+# Updated: 2026-01-25 10:55 - Fixed Pure Prompt Mode for tenants with no chunks
+# Updated: 2026-01-28 - Added httpx for proxy support

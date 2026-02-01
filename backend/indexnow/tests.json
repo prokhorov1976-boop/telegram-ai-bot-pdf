@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "IndexNow notification test",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "urls_submitted": 7
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

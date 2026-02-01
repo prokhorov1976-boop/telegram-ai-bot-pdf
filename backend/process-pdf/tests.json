@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Test PDF processing",
+      "method": "POST",
+      "body": {
+        "documentId": 1
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "documentId": "number",
+        "pages": "number",
+        "chunks": "number",
+        "status": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Get system monitoring stats",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "stats": "object",
+        "timestamp": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

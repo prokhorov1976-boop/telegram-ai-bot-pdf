@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight check",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Require authentication",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

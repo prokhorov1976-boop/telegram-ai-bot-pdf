@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Export tenant backup",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "export_date": "string",
+        "tenant_id": "number",
+        "version": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

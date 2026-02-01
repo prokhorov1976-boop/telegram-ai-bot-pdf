@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "Test chat with widget channel",
+      "method": "POST",
+      "body": {
+        "message": "какие номера доступны на завтра",
+        "sessionId": "test-widget-channel",
+        "tenantSlug": "dinasty-crimea",
+        "channel": "widget"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string"
+      },
+      "bodyMatcher": "partial",
+      "description": "Тест работы чата с каналом widget (HTML форматирование)"
+    },
+    {
+      "name": "Test chat with telegram channel",
+      "method": "POST",
+      "body": {
+        "message": "расскажи о тарифах",
+        "sessionId": "test-telegram-channel",
+        "tenantId": 777,
+        "channel": "telegram"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string"
+      },
+      "bodyMatcher": "partial",
+      "description": "Тест работы чата с каналом telegram (Markdown форматирование)"
+    }
+  ]
+}

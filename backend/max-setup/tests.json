@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Check invalid token",
+      "method": "POST",
+      "path": "/?action=verify",
+      "body": {
+        "bot_token": "invalid_token"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "ok": false
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

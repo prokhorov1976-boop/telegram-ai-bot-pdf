@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Get quality gate settings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "settings": {
+          "default": {},
+          "tariffs": {},
+          "services": {}
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

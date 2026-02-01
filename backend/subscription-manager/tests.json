@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "Get subscription info for tenant",
+      "method": "GET",
+      "path": "/?action=get_subscription&tenant_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "subscription": {
+          "status": "string",
+          "tariff_name": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

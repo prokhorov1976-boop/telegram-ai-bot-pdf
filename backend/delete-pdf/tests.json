@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Test delete document",
+      "method": "DELETE",
+      "body": {
+        "documentId": 999
+      },
+      "expectedStatus": 404,
+      "expectedBody": {
+        "error": "Document not found"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

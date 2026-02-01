@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Test cron trigger execution",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

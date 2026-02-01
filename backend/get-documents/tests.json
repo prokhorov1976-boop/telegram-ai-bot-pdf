@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Test get documents list",
+      "method": "GET",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "documents": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

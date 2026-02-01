@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Get tenant token stats - 30 days",
+      "method": "GET",
+      "path": "/?period=30",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "tenantId": "number",
+        "period": "string",
+        "totalTokens": "number",
+        "totalCost": "number",
+        "totalOperations": "number",
+        "breakdown": "array",
+        "dailyStats": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

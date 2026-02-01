@@ -1,0 +1,33 @@
+{
+  "tests": [
+    {
+      "name": "Create payment with valid amount",
+      "method": "POST",
+      "body": {
+        "amount": 1000.50,
+        "description": "Test payment",
+        "return_url": "https://example.com/success"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "payment_id": "string",
+        "confirmation_url": "string",
+        "status": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reject payment with invalid amount",
+      "method": "POST",
+      "body": {
+        "amount": -100,
+        "description": "Invalid payment"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

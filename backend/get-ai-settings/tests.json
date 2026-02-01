@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Test get AI settings - unauthorized",
+      "method": "GET",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

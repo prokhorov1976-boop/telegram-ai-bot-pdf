@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "name": "Get all messenger auto-message settings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "settings": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get specific messenger settings",
+      "method": "GET",
+      "path": "/?messenger_type=telegram",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "settings": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Update messenger settings",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "messenger_type": "telegram",
+        "enabled": true,
+        "delay_seconds": 45,
+        "message_text": "Привет из Telegram!",
+        "repeat_enabled": true,
+        "repeat_delay_seconds": 90
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

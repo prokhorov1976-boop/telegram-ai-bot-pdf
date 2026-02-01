@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Get public content and consent settings",
+      "method": "GET",
+      "path": "/?action=public_content&tenant_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "name": "string",
+        "consent_settings": {
+          "enabled": "boolean",
+          "text": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

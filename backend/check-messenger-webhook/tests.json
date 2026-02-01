@@ -1,0 +1,21 @@
+{
+  "tests": [
+    {
+      "name": "Test Telegram webhook check without auth",
+      "method": "GET",
+      "path": "/?tenant_id=1&messenger=telegram&webhook_url=https://functions.poehali.dev/test",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test missing parameters",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

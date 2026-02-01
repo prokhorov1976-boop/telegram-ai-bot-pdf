@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Reject unauthorized GET request",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Reject unauthorized PUT request",
+      "method": "PUT",
+      "path": "/",
+      "body": {
+        "id": 1,
+        "subject": "Test Subject",
+        "body": "<p>Test body</p>"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

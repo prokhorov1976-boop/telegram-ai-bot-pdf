@@ -1,0 +1,221 @@
+import json
+import os
+import psycopg2
+import sys
+sys.path.append('/function/code')
+from api_keys_helper import get_tenant_api_key
+from auth_middleware import get_tenant_id_from_request
+
+def handler(event: dict, context) -> dict:
+    """Переиндексация эмбеддингов после смены модели"""
+    method = event.get('httpMethod', 'POST')
+
+    if method == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Authorization'
+            },
+            'body': '',
+            'isBase64Encoded': False
+        }
+
+    try:
+        tenant_id, auth_error = get_tenant_id_from_request(event)
+        if auth_error:
+            return auth_error
+
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+
+        if method == 'GET':
+            cur.execute("""
+                SELECT 
+                    revectorization_status,
+                    revectorization_progress,
+                    revectorization_total,
+                    revectorization_model,
+                    revectorization_error
+                FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings
+                WHERE tenant_id = %s
+            """, (tenant_id,))
+            row = cur.fetchone()
+            
+            if not row:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 404,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Tenant not found'}),
+                    'isBase64Encoded': False
+                }
+
+            result = {
+                'status': row[0] or 'idle',
+                'progress': row[1] or 0,
+                'total': row[2] or 0,
+                'model': row[3] or '',
+                'error': row[4] or ''
+            }
+
+            cur.close()
+            conn.close()
+
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps(result),
+                'isBase64Encoded': False
+            }
+
+        elif method == 'POST':
+            body = json.loads(event.get('body', '{}'))
+            action = body.get('action')
+
+            if action == 'start':
+                cur.execute("""
+                    SELECT embedding_provider, embedding_doc_model
+                    FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings
+                    WHERE tenant_id = %s
+                """, (tenant_id,))
+                settings_row = cur.fetchone()
+                
+                if not settings_row:
+                    cur.close()
+                    conn.close()
+                    return {
+                        'statusCode': 404,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'Tenant settings not found'}),
+                        'isBase64Encoded': False
+                    }
+
+                embedding_provider = settings_row[0] or 'yandex'
+                embedding_doc_model = settings_row[1] or 'text-search-doc'
+
+                cur.execute("""
+                    SELECT COUNT(*) FROM t_p56134400_telegram_ai_bot_pdf.tenant_documents
+                    WHERE tenant_id = %s AND status = 'ready'
+                """, (tenant_id,))
+                total_docs = cur.fetchone()[0]
+
+                if total_docs == 0:
+                    cur.close()
+                    conn.close()
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                        'body': json.dumps({'error': 'No documents to reindex'}),
+                        'isBase64Encoded': False
+                    }
+
+                cur.execute("""
+                    UPDATE t_p56134400_telegram_ai_bot_pdf.tenant_settings
+                    SET 
+                        revectorization_status = 'in_progress',
+                        revectorization_progress = 0,
+                        revectorization_total = %s,
+                        revectorization_model = %s,
+                        revectorization_error = NULL
+                    WHERE tenant_id = %s
+                """, (total_docs, f"{embedding_provider}:{embedding_doc_model}", tenant_id))
+
+                cur.execute("""
+                    SELECT id FROM t_p56134400_telegram_ai_bot_pdf.tenant_documents
+                    WHERE tenant_id = %s AND status = 'ready'
+                    ORDER BY id
+                """, (tenant_id,))
+                document_ids = [row[0] for row in cur.fetchall()]
+
+                conn.commit()
+                cur.close()
+                conn.close()
+
+                import requests
+                process_pdf_url = 'https://functions.poehali.dev/44b9c312-5377-4fa7-8b4c-522f4bbbf201'
+                
+                success_count = 0
+                for doc_id in document_ids:
+                    try:
+                        response = requests.post(
+                            process_pdf_url,
+                            headers={
+                                'X-Authorization': event.get('headers', {}).get('X-Authorization', ''),
+                                'Content-Type': 'application/json'
+                            },
+                            json={'documentId': doc_id},
+                            timeout=300
+                        )
+                        
+                        if response.ok:
+                            success_count += 1
+                        
+                        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+                        cur = conn.cursor()
+                        cur.execute("""
+                            UPDATE t_p56134400_telegram_ai_bot_pdf.tenant_settings
+                            SET revectorization_progress = %s
+                            WHERE tenant_id = %s
+                        """, (success_count, tenant_id))
+                        conn.commit()
+                        cur.close()
+                        conn.close()
+                        
+                    except Exception as e:
+                        print(f"Error reindexing document {doc_id}: {e}")
+                        continue
+
+                conn = psycopg2.connect(os.environ['DATABASE_URL'])
+                cur = conn.cursor()
+                cur.execute("""
+                    UPDATE t_p56134400_telegram_ai_bot_pdf.tenant_settings
+                    SET 
+                        revectorization_status = 'completed',
+                        revectorization_progress = %s
+                    WHERE tenant_id = %s
+                """, (success_count, tenant_id))
+                conn.commit()
+                cur.close()
+                conn.close()
+
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'success': True,
+                        'reindexed': success_count,
+                        'total': total_docs
+                    }),
+                    'isBase64Encoded': False
+                }
+
+            else:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Invalid action'}),
+                    'isBase64Encoded': False
+                }
+
+        else:
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 405,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Method not allowed'}),
+                'isBase64Encoded': False
+            }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
+        }

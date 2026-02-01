@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Test get chat stats",
+      "method": "GET",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "totalMessages": "number",
+        "totalUsers": "number",
+        "popularQuestions": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

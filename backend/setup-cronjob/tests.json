@@ -1,0 +1,14 @@
+{
+  "tests": [
+    {
+      "name": "Reject unauthorized access",
+      "method": "GET",
+      "path": "/?action=status",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authorization required"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

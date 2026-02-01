@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Get page settings by slug (public access)",
+      "method": "GET",
+      "path": "/?slug=dinasty-crimea",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "settings": "object",
+        "quickQuestions": "array",
+        "botName": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

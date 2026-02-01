@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "Update quality gate settings",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "settings": {
+          "default": {
+            "min_len": 500,
+            "min_sim": 0.32,
+            "min_overlap_ru": 0.15,
+            "min_overlap_en": 0.12
+          },
+          "tariffs": {
+            "min_len": 250,
+            "min_sim": 0.25,
+            "min_overlap_ru": 0.06,
+            "min_overlap_en": 0.06
+          },
+          "services": {
+            "min_len": 450,
+            "min_sim": 0.28,
+            "min_overlap_ru": 0.15,
+            "min_overlap_en": 0.12
+          }
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      }
+    }
+  ]
+}

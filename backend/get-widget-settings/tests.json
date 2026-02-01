@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get widget settings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "button_color": "string",
+        "header_title": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
