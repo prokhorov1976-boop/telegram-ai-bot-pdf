@@ -637,7 +637,7 @@ def handler(event: dict, context) -> dict:
             
             # Логируем использование токенов
             usage_data = yandex_data.get('result', {}).get('usage', {})
-            total_tokens = usage_data.get('totalTokens', 0)
+            total_tokens = int(usage_data.get('totalTokens', 0))
             if total_tokens > 0:
                 log_token_usage(
                     tenant_id=tenant_id,
