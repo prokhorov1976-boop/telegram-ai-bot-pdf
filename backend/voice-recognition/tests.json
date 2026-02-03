@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "Handle OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Recognize speech from base64 audio",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "audio_base64": "T2dnUw=="
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "text": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
