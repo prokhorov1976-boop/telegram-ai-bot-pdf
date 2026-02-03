@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "POST ASR result",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "event_type": "asr_result",
+        "call_id": "test_call_123",
+        "asr_id": "asr_456",
+        "text": "Привет",
+        "confidence": 95
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "status": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET last ASR result",
+      "method": "GET",
+      "path": "/?call_id=test_call_123",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "has_result": "boolean"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
