@@ -79,6 +79,7 @@ def handler(event: dict, context) -> dict:
 
         if event_type == 'call_started':
             response_text = greeting
+            print(f"[Voximplant] call_started: greeting='{response_text[:100]}'")
             
             cur.execute(f"""
                 INSERT INTO {schema}.voice_calls 
@@ -160,15 +161,18 @@ def handler(event: dict, context) -> dict:
         cur.close()
         conn.close()
 
+        response_data = {
+            'response': response_text,
+            'action': 'speak',
+            'voice': 'filipp',
+            'language': 'ru-RU'
+        }
+        print(f"[Voximplant] Returning response: {response_data}")
+
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'response': response_text,
-                'action': 'speak',
-                'voice': 'filipp',
-                'language': 'ru-RU'
-            }),
+            'body': json.dumps(response_data),
             'isBase64Encoded': False
         }
 
