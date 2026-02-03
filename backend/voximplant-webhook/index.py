@@ -81,13 +81,17 @@ def handler(event: dict, context) -> dict:
             conn.commit()
 
         elif event_type == 'speech_recognized':
+            print(f"[Voximplant] speech_recognized: call_id={call_id}, text={speech_text}, tenant={tenant_slug}")
+            
             if not speech_text:
                 response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
             else:
-                chat_url = os.environ.get('CHAT_FUNCTION_URL')
-                if not chat_url:
-                    response_text = "Извините, сервис временно недоступен."
-                else:
+                # Читаем URL функции chat из func2url.json
+                chat_url = os.environ.get('CHAT_FUNCTION_URL', 'https://functions.poehali.dev/7b58f4fb-5db0-4f85-bb3b-55bafa4cbf73')
+                
+                print(f"[Voximplant] Отправка в AI: url={chat_url}, message={speech_text}")
+                
+                try:
                     ai_response = requests.post(
                         chat_url,
                         json={
@@ -100,11 +104,18 @@ def handler(event: dict, context) -> dict:
                         timeout=30
                     )
                     
+                    print(f"[Voximplant] AI response: status={ai_response.status_code}, body={ai_response.text[:500]}")
+                    
                     if ai_response.status_code == 200:
                         ai_data = ai_response.json()
                         response_text = ai_data.get('response', 'Извините, не смог обработать запрос.')
+                        print(f"[Voximplant] AI answer: {response_text}")
                     else:
                         response_text = "Извините, произошла ошибка. Попробуйте позже."
+                        print(f"[Voximplant] AI error: status {ai_response.status_code}")
+                except Exception as e:
+                    response_text = "Извините, сервис временно недоступен."
+                    print(f"[Voximplant] Exception calling AI: {str(e)}")
 
                 cur.execute(f"""
                     INSERT INTO {schema}.voice_messages
