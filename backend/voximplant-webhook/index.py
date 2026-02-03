@@ -6,16 +6,22 @@ import requests
 from datetime import datetime
 from pathlib import Path
 
-# Читаем URL функции chat из func2url.json
-FUNC2URL_PATH = Path(__file__).parent.parent / 'func2url.json'
+# Читаем URL функции chat из environment variable с fallback на func2url.json
 CHAT_FUNCTION_URL = None
 
+# Cloud Functions структура: /function/code/ содержит текущую функцию
+# func2url.json находится в /function/bucket/func2url.json
 try:
-    with open(FUNC2URL_PATH, 'r') as f:
-        func2url = json.load(f)
-        CHAT_FUNCTION_URL = func2url.get('chat')
+    func2url_path = '/function/bucket/func2url.json'
+    if os.path.exists(func2url_path):
+        with open(func2url_path, 'r') as f:
+            func2url = json.load(f)
+            CHAT_FUNCTION_URL = func2url.get('chat')
+            print(f"[Voximplant] ✅ Loaded chat URL from func2url.json: {CHAT_FUNCTION_URL}")
+    else:
+        print(f"[Voximplant] ⚠️ func2url.json not found at {func2url_path}")
 except Exception as e:
-    print(f"[Voximplant] Ошибка чтения func2url.json: {e}")
+    print(f"[Voximplant] ⚠️ Error reading func2url.json: {e}")
 
 def handler(event: dict, context) -> dict:
     """Webhook для обработки входящих звонков от Voximplant и взаимодействия с AI-ботом"""
