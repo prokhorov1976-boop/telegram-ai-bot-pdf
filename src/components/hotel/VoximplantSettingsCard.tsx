@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { authenticatedFetch, getTenantId } from '@/lib/auth';
+import { useParams } from 'react-router-dom';
 import { BACKEND_URLS } from './types';
 
 interface VoximplantSettings {
@@ -27,6 +28,7 @@ const VoximplantSettingsCard = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const tenantId = getTenantId();
+  const { tenantSlug } = useParams<{ tenantSlug: string }>();
 
   useEffect(() => {
     loadSettings();
@@ -239,9 +241,15 @@ const VoximplantSettingsCard = () => {
                     <li>Создайте аккаунт на voximplant.com</li>
                     <li>Создайте Application в панели управления</li>
                     <li>Добавьте номер телефона и привяжите к Application</li>
-                    <li>Скопируйте Webhook URL и укажите его в настройках Application</li>
-                    <li>В custom_data передайте: <code className="bg-blue-100 px-1 rounded">{'{"tenant_slug": "ваш-slug"}'}</code></li>
+                    <li>Создайте Scenario со следующим кодом:</li>
                   </ol>
+                  <div className="mt-2 bg-slate-900 text-green-400 p-3 rounded text-xs font-mono overflow-x-auto">
+                    <div>var tenant_slug = "{tenantSlug}";</div>
+                    <div className="text-slate-500">// Используйте этот slug в сценарии Voximplant</div>
+                  </div>
+                  <p className="text-xs text-blue-800 mt-2">
+                    Webhook URL общий для всех ботов. Изоляция через tenant_slug в коде сценария.
+                  </p>
                 </div>
               </div>
             </div>

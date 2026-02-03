@@ -25,7 +25,7 @@ def handler(event: dict, context) -> dict:
     try:
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        schema = 't_p56134400_telegram_ai_bot_pdf'
+        schema = os.environ.get('MAIN_DB_SCHEMA', 't_p56134400_telegram_ai_bot_pdf')
 
         if method == 'GET':
             query_params = event.get('queryStringParameters') or {}
