@@ -41,7 +41,10 @@ def handler(event: dict, context) -> dict:
         event_type = body.get('event_type')
         phone_number = body.get('phone_number', '')
         speech_text = body.get('text', '')
-        tenant_slug = body.get('custom_data', {}).get('tenant_slug')
+        # Tenant slug может быть в custom_data или напрямую в body
+        tenant_slug = body.get('tenant_slug') or body.get('custom_data', {}).get('tenant_slug')
+        
+        print(f"[Voximplant] Received: event_type={event_type}, call_id={call_id}, phone={phone_number}, tenant={tenant_slug}")
 
         if not tenant_slug:
             return {
