@@ -186,7 +186,8 @@ export const BACKEND_URLS = {
   reindexEmbeddings: 'https://functions.poehali.dev/d84c6a38-349a-45a7-859d-08a51d29caf0',
   consentLogs: 'https://functions.poehali.dev/7eaae0aa-83a0-4014-aa24-0b32693c37f0',
   yookassaCreatePayment: 'https://functions.poehali.dev/f4c127b8-2009-4d9b-b026-9fdf933b8b3a',
-  voximplantWebhook: 'https://functions.poehali.dev/7adc3631-e74d-43dc-88f4-d008c285f8f2'
+  voximplantWebhook: 'https://functions.poehali.dev/7adc3631-e74d-43dc-88f4-d008c285f8f2',
+  getVoiceCalls: 'https://functions.poehali.dev/7a4186cc-a5ef-4b6d-86b9-4461c199f97a'
 };
 
 export const quickQuestions = [

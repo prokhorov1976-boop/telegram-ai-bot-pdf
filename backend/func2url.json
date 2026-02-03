@@ -1,4 +1,5 @@
 {
+  "get-voice-calls": "https://functions.poehali.dev/7a4186cc-a5ef-4b6d-86b9-4461c199f97a",
   "voice-recognition": "https://functions.poehali.dev/b5237645-271f-432f-b034-a63f038f5bb1",
   "voximplant-webhook": "https://functions.poehali.dev/7adc3631-e74d-43dc-88f4-d008c285f8f2",
   "manage-proxy-settings": "https://functions.poehali.dev/9e4ccf79-e896-4279-9f09-6bb78ed1b7cc",

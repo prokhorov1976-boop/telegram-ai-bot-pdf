@@ -28,6 +28,7 @@ import SupportChat from '@/components/SupportChat';
 import PublicChatLinkCard from './PublicChatLinkCard';
 import SpeechSettingsCard from './SpeechSettingsCard';
 import ProxySettingsCard from './ProxySettingsCard';
+import VoiceCallsHistory from './VoiceCallsHistory';
 import { Document, BACKEND_URLS } from './types';
 import { getTenantId, getTariffId, isSuperAdmin, getAdminUser, exitTenantView } from '@/lib/auth';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -178,6 +179,10 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
           </div>
 
           <MessengerAutoMessages isSuperAdmin={superAdmin} />
+          
+          {(superAdmin || hasFeatureAccess('hasVoice', tariffId)) && tenantId && (
+            <VoiceCallsHistory tenantId={tenantId} />
+          )}
           
           {/* Форматирование доступно всем, у кого есть мессенджеры */}
           {(superAdmin || hasFeatureAccess('hasTelegram', tariffId) || hasFeatureAccess('hasVK', tariffId) || hasFeatureAccess('hasMAX', tariffId)) && (

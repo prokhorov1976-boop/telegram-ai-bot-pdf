@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Handle OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get voice calls with tenant_id",
+      "method": "GET",
+      "path": "/?tenant_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "calls": "array"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

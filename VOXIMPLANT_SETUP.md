@@ -61,25 +61,29 @@
 
 ---
 
-## Шаг 6: Создание Scenario для Grok Voice Agent
+## Шаг 6: Создание Scenario с ASR (распознавание речи)
 
 1. Откройте **Scenarios**
 2. Нажмите **Create new scenario**
-3. Название: `Grok Voice Agent`
+3. Название: `AI Bot Handler`
 4. Вставьте следующий код:
 
 ```javascript
-require(Modules.Grok);
+require(Modules.ASR);
 
 VoxEngine.addEventListener(AppEvents.CallAlerting, function(e) {
   var call = e.call;
   var tenant_slug = "dinasty-crimea";
   var webhookUrl = "https://functions.poehali.dev/7adc3631-e74d-43dc-88f4-d008c285f8f2";
+  var recognitionUrl = "https://functions.poehali.dev/b5237645-271f-432f-b034-a63f038f5bb1";
+  var asr = null;
+  
+  Logger.write("[" + tenant_slug + "] Call alerting from: " + call.callerid());
   
   call.answer();
   
   call.addEventListener(CallEvents.Connected, function() {
-    Logger.write("Call connected, initializing Grok...");
+    Logger.write("[" + tenant_slug + "] Call connected from: " + call.callerid());
     
     Net.httpRequestAsync(webhookUrl, {
       method: "POST",
@@ -94,64 +98,110 @@ VoxEngine.addEventListener(AppEvents.CallAlerting, function(e) {
       var data = JSON.parse(response.text);
       var greeting = data.response || "Здравствуйте! Я AI-консьерж. Чем могу помочь?";
       
-      Logger.write("Got greeting from webhook: " + greeting);
+      Logger.write("[" + tenant_slug + "] Greeting: " + greeting);
       
-      var grok = Grok.create({
-        apiKey: "YOUR_XAI_API_KEY",
-        model: "grok-2-realtime",
-        voice: "sage",
-        language: "ru",
-        instructions: "Ты AI-консьерж отеля Династия в Крыму. " +
-          "Отвечай коротко и по делу. Помогай гостям с вопросами о бронировании, " +
-          "услугах отеля, ценах и доступности номеров. Будь вежливым и дружелюбным.",
-        firstMessage: greeting
+      call.say(greeting, Language.RU_RUSSIAN_FEMALE);
+      
+      call.addEventListener(CallEvents.PlaybackFinished, function() {
+        startListening();
       });
-      
-      grok.addEventListener(GrokEvents.Started, function() {
-        Logger.write("Grok session started");
-      });
-      
-      grok.addEventListener(GrokEvents.Error, function(e) {
-        Logger.write("Grok error: " + JSON.stringify(e));
-        call.say("Извините, произошла ошибка. Попробуйте позвонить позже.", Language.RU_RUSSIAN_FEMALE);
-        call.hangup();
-      });
-      
-      grok.addEventListener(GrokEvents.Stopped, function() {
-        Logger.write("Grok session stopped");
-      });
-      
-      call.addEventListener(CallEvents.Disconnected, function() {
-        Logger.write("Call disconnected");
-        grok.stop();
-        
-        Net.httpRequestAsync(webhookUrl, {
-          method: "POST",
-          headers: ["Content-Type: application/json"],
-          postData: JSON.stringify({
-            event_type: "call_ended",
-            call_id: call.id(),
-            custom_data: { tenant_slug: tenant_slug }
-          })
-        });
-      });
-      
-      call.sendMediaTo(grok);
-      grok.sendMediaTo(call);
-      grok.start();
       
     }).catch(function(error) {
-      Logger.write("Webhook error: " + JSON.stringify(error));
+      Logger.write("[" + tenant_slug + "] Webhook error: " + JSON.stringify(error));
       call.say("Извините, сервис временно недоступен.", Language.RU_RUSSIAN_FEMALE);
       call.hangup();
+    });
+  });
+  
+  function startListening() {
+    Logger.write("[" + tenant_slug + "] Starting ASR...");
+    
+    asr = VoxEngine.createASR({
+      profile: "en-US",
+      lang: "ru-RU"
+    });
+    
+    asr.addEventListener(ASREvents.CaptureStarted, function() {
+      Logger.write("[" + tenant_slug + "] ASR capture started");
+    });
+    
+    asr.addEventListener(ASREvents.Result, function(e) {
+      var recognizedText = e.text;
+      Logger.write("[" + tenant_slug + "] Recognized: " + recognizedText);
+      
+      if (recognizedText && recognizedText.length > 0) {
+        getAIResponse(recognizedText);
+      } else {
+        call.say("Извините, я вас не расслышал. Повторите, пожалуйста.", Language.RU_RUSSIAN_FEMALE);
+        call.addEventListener(CallEvents.PlaybackFinished, function() {
+          startListening();
+        });
+      }
+    });
+    
+    asr.addEventListener(ASREvents.Error, function(e) {
+      Logger.write("[" + tenant_slug + "] ASR error: " + JSON.stringify(e));
+      call.say("Извините, произошла ошибка распознавания.", Language.RU_RUSSIAN_FEMALE);
+      call.hangup();
+    });
+    
+    call.sendMediaTo(asr);
+    asr.start();
+  }
+  
+  function getAIResponse(userText) {
+    Logger.write("[" + tenant_slug + "] Getting AI response for: " + userText);
+    
+    Net.httpRequestAsync(webhookUrl, {
+      method: "POST",
+      headers: ["Content-Type: application/json"],
+      postData: JSON.stringify({
+        event_type: "speech_recognized",
+        call_id: call.id(),
+        text: userText,
+        custom_data: { tenant_slug: tenant_slug }
+      })
+    }).then(function(response) {
+      var data = JSON.parse(response.text);
+      var aiResponse = data.response || "Извините, не смог обработать запрос.";
+      
+      Logger.write("[" + tenant_slug + "] AI response: " + aiResponse);
+      
+      call.say(aiResponse, Language.RU_RUSSIAN_FEMALE);
+      
+      call.addEventListener(CallEvents.PlaybackFinished, function() {
+        startListening();
+      });
+      
+    }).catch(function(error) {
+      Logger.write("[" + tenant_slug + "] AI error: " + JSON.stringify(error));
+      call.say("Извините, произошла ошибка. Попробуйте позже.", Language.RU_RUSSIAN_FEMALE);
+      call.hangup();
+    });
+  }
+  
+  call.addEventListener(CallEvents.Disconnected, function() {
+    Logger.write("[" + tenant_slug + "] Call disconnected");
+    
+    if (asr) {
+      asr.stop();
+    }
+    
+    Net.httpRequestAsync(webhookUrl, {
+      method: "POST",
+      headers: ["Content-Type: application/json"],
+      postData: JSON.stringify({
+        event_type: "call_ended",
+        call_id: call.id(),
+        custom_data: { tenant_slug: tenant_slug }
+      })
     });
   });
 });
 ```
 
-5. **ВАЖНО:** Замените `YOUR_XAI_API_KEY` на ваш настоящий API ключ от xAI
-6. Можно изменить `tenant_slug` на другой, если используете для другого отеля
-7. Нажмите **Save**
+5. Можно изменить `tenant_slug` на другой, если используете для другого отеля
+6. Нажмите **Save**
 
 ---
 
@@ -196,8 +246,10 @@ VoxEngine.addEventListener(AppEvents.CallAlerting, function(e) {
 ### Тарифы:
 - **Voximplant номер**: ~$1-5/месяц
 - **Входящие звонки Voximplant**: ~$0.01-0.05/минута
-- **Grok Voice Agent**: $0.05/минута (включает распознавание речи + AI + синтез голоса)
-- **Итого примерная стоимость**: ~$0.06-0.10/минута разговора
+- **Voximplant ASR**: Бесплатно (встроенный Google STT)
+- **Voximplant TTS (call.say)**: Бесплатно
+- **Yandex SpeechKit (опционально)**: ~₽1-2/минута
+- **Итого примерная стоимость**: ~$0.01-0.05/минута разговора (только Voximplant)
 
 ### Отладка:
 - Логи звонков: **Calls** → **Call history**
@@ -205,23 +257,19 @@ VoxEngine.addEventListener(AppEvents.CallAlerting, function(e) {
 - Логи приложения: проверьте консоль браузера (F12) в админке проекта
 
 ### Требования:
-- **xAI аккаунт**: Зарегистрируйтесь на https://console.x.ai и создайте API ключ
-- **Voximplant аккаунт**: Базовый тариф достаточен для работы с Grok Voice Agent
-- **Секреты проекта**: `XAI_API_KEY`, `VOXIMPLANT_ACCOUNT_ID`, `VOXIMPLANT_API_KEY`, `VOXIMPLANT_APPLICATION_ID`
+- **Voximplant аккаунт**: Базовый тариф с поддержкой ASR
+- **Секреты проекта**: `VOXIMPLANT_ACCOUNT_ID`, `VOXIMPLANT_API_KEY`, `VOXIMPLANT_APPLICATION_ID`
 - Webhook URL: `https://functions.poehali.dev/7adc3631-e74d-43dc-88f4-d008c285f8f2`
 
 ---
 
-## 🎯 Преимущества Grok Voice Agent
+## 🎯 Преимущества ASR подхода
 
-По сравнению со стандартным ASR подходом:
-
-1. **Скорость**: Ответ менее чем за 1 секунду (в 5 раз быстрее конкурентов)
-2. **Простота**: Не нужно настраивать ASR и TTS отдельно — всё в одном модуле
-3. **Качество**: Естественные диалоги без задержек и робототизированного голоса
-4. **Многоязычность**: Автоматическое определение языка из 100+ поддерживаемых
-5. **Стоимость**: $0.05/мин всё включено (дешевле отдельных ASR + TTS + AI вызовов)
-6. **Надёжность**: Работает на любом тарифе Voximplant без ограничений
+1. **Стоимость**: ASR и TTS бесплатны в Voximplant (только тариф на звонки)
+2. **Простота**: Не требуется дополнительных API ключей
+3. **Надёжность**: Встроенный Google ASR работает стабильно
+4. **Интеграция**: Легко подключается к вашему AI-боту через webhook
+5. **Гибкость**: Можно использовать любую AI-модель для ответов
 
 ## 🔧 Альтернативный упрощённый сценарий (только приветствие)
 
