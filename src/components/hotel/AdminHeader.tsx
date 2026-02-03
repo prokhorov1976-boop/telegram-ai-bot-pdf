@@ -7,6 +7,7 @@ interface AdminHeaderProps {
   superAdmin: boolean;
   isViewingOtherTenant: boolean;
   tenantId: number | null;
+  tenantSlug?: string | null;
   tariffId: string | null;
   fz152Enabled?: boolean;
   onExitTenantView: () => void;
@@ -17,6 +18,7 @@ const AdminHeader = ({
   superAdmin, 
   isViewingOtherTenant, 
   tenantId, 
+  tenantSlug,
   tariffId,
   fz152Enabled = false,
   onExitTenantView 
@@ -38,6 +40,11 @@ const AdminHeader = ({
             <span className={`text-sm ${superAdmin ? "text-purple-700" : "text-blue-700"}`}>
               • Tenant ID: {tenantId}
             </span>
+            {tenantSlug && (
+              <span className={`text-sm ${superAdmin ? "text-purple-700" : "text-blue-700"}`}>
+                • Slug: {tenantSlug}
+              </span>
+            )}
             <span className={`text-sm ${superAdmin ? "text-purple-700" : "text-blue-700"}`}>
               • Tariff: {tariffId || 'не установлен'}
             </span>

@@ -77,6 +77,7 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
         superAdmin={superAdmin}
         isViewingOtherTenant={isViewingOtherTenant}
         tenantId={tenantId}
+        tenantSlug={tenantSlug}
         tariffId={tariffId}
         fz152Enabled={fz152Enabled}
         onExitTenantView={handleExitTenantView}
