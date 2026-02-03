@@ -12,9 +12,11 @@ CHAT_FUNCTION_URL = 'https://functions.poehali.dev/7b58f4fb-5db0-4f85-bb3b-55baf
 
 def handler(event: dict, context) -> dict:
     """Webhook для обработки входящих звонков от Voximplant и взаимодействия с AI-ботом"""
+    print(f"[DEBUG] Handler called: method={event.get('httpMethod')}, body={event.get('body', '')[:200]}")
     method = event.get('httpMethod', 'POST')
 
     if method == 'OPTIONS':
+        print("[DEBUG] Returning OPTIONS response")
         return {
             'statusCode': 200,
             'headers': {
@@ -61,8 +63,8 @@ def handler(event: dict, context) -> dict:
         cur.execute(f"""
             SELECT id, name, voximplant_enabled, voximplant_greeting
             FROM {schema}.tenants
-            WHERE slug = %s AND voximplant_enabled = true
-        """, (tenant_slug,))
+            WHERE slug = '{tenant_slug}' AND voximplant_enabled = true
+        """)
         
         print(f"[Voximplant] Looking for tenant: slug={tenant_slug}, schema={schema}")
         tenant = cur.fetchone()
@@ -87,8 +89,8 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"""
                 INSERT INTO {schema}.voice_calls 
                 (tenant_id, call_id, phone_number, status, started_at)
-                VALUES (%s, %s, %s, 'active', NOW())
-            """, (tenant_id, call_id, phone_number))
+                VALUES ({tenant_id}, '{call_id}', '{phone_number}', 'active', NOW())
+            """)
             conn.commit()
 
         elif event_type == 'speech_recognized':
@@ -131,22 +133,22 @@ def handler(event: dict, context) -> dict:
                 cur.execute(f"""
                     INSERT INTO {schema}.voice_messages
                     (call_id, direction, text, created_at)
-                    VALUES (%s, 'incoming', %s, NOW())
-                """, (call_id, speech_text))
+                    VALUES ('{call_id}', 'incoming', '{speech_text.replace("'", "''")}', NOW())
+                """)
                 
                 cur.execute(f"""
                     INSERT INTO {schema}.voice_messages
                     (call_id, direction, text, created_at)
-                    VALUES (%s, 'outgoing', %s, NOW())
-                """, (call_id, response_text))
+                    VALUES ('{call_id}', 'outgoing', '{response_text.replace("'", "''")}', NOW())
+                """)
                 conn.commit()
 
         elif event_type == 'call_ended':
             cur.execute(f"""
                 UPDATE {schema}.voice_calls
                 SET status = 'completed', ended_at = NOW()
-                WHERE call_id = %s
-            """, (call_id,))
+                WHERE call_id = '{call_id}'
+            """)
             conn.commit()
             
             cur.close()
