@@ -23,18 +23,27 @@ def handler(event: dict, context) -> dict:
     
     if method == 'POST':
         try:
-            body = json.loads(event.get('body', '{}'))
+            body_str = event.get('body', '{}')
+            print(f"[ASR Webhook] Raw body: {body_str}")
             
+            body = json.loads(body_str)
+            
+            # Voximplant может отправлять в разных форматах
+            # Формат 1: наш внутренний формат
             event_type = body.get('event_type')
-            call_id = body.get('call_id')
-            asr_id = body.get('asr_id')
-            text = body.get('text', '')
-            confidence = body.get('confidence', 0)
             
-            print(f"[ASR Webhook] event={event_type}, call_id={call_id}, asr_id={asr_id}, text={text}, confidence={confidence}")
+            # Формат 2: официальный формат Voximplant callback
+            vox_event = body.get('event')
             
-            if event_type == 'asr_result':
-                # Сохраняем результат
+            if vox_event == 'asr_result' or event_type == 'asr_result':
+                # Voximplant формат
+                call_id = body.get('call_id') or body.get('callId') or body.get('sessionId')
+                asr_id = body.get('asr_id') or body.get('asrId')
+                text = body.get('text', '') or body.get('utterance', '')
+                confidence = body.get('confidence', 0)
+                
+                print(f"[ASR Webhook] ASR Result - call_id={call_id}, text={text}, confidence={confidence}")
+                
                 if call_id not in asr_results:
                     asr_results[call_id] = []
                 
@@ -54,6 +63,9 @@ def handler(event: dict, context) -> dict:
                     'body': json.dumps({'status': 'received'})
                 }
             
+            # Логируем все остальные события для отладки
+            print(f"[ASR Webhook] Other event: {body}")
+            
             return {
                 'statusCode': 200,
                 'headers': {
@@ -65,6 +77,8 @@ def handler(event: dict, context) -> dict:
             
         except Exception as e:
             print(f"[ASR Webhook] Error: {str(e)}")
+            import traceback
+            print(f"[ASR Webhook] Traceback: {traceback.format_exc()}")
             return {
                 'statusCode': 500,
                 'headers': {
