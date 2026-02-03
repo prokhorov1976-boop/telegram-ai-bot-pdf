@@ -111,7 +111,7 @@ def handler(event: dict, context) -> dict:
                     
                     if ai_response.status_code == 200:
                         ai_data = ai_response.json()
-                        response_text = ai_data.get('response', 'Извините, не смог обработать запрос.')
+                        response_text = ai_data.get('message', 'Извините, не смог обработать запрос.')
                         print(f"[Voximplant] AI answer: {response_text}")
                     else:
                         response_text = "Извините, произошла ошибка. Попробуйте позже."
