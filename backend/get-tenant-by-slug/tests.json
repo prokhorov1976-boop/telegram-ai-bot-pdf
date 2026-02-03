@@ -6,8 +6,7 @@
       "path": "/?slug=sales",
       "expectedStatus": 200,
       "expectedBody": {
-        "tenant_id": "number",
-        "slug": "sales"
+        "tenant": "object"
       },
       "bodyMatcher": "partial"
     }

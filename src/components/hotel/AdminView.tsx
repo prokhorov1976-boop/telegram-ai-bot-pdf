@@ -2,6 +2,7 @@ import { useState } from 'react';
 import TelegramSettingsCard from './TelegramSettingsCard';
 import VKSettingsCard from './VKSettingsCard';
 import MAXSettingsCard from './MAXSettingsCard';
+import VoximplantSettingsCard from './VoximplantSettingsCard';
 import PageSettingsCard from './PageSettingsCard';
 import WidgetSettingsCard from './WidgetSettingsCard';
 import AiSettingsCard from './AiSettingsCard';
@@ -166,6 +167,12 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
               />
             ) : (
               <UpgradeCard feature="Интеграция с MAX.ru" />
+            )}
+
+            {(superAdmin || hasFeatureAccess('hasVoice', tariffId)) ? (
+              <VoximplantSettingsCard />
+            ) : (
+              <UpgradeCard feature="Голосовые звонки (Voximplant)" />
             )}
           </div>
 

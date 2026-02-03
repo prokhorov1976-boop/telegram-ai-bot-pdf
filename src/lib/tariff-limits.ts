@@ -6,6 +6,7 @@ export interface TariffLimits {
   hasTelegram: boolean;
   hasVK: boolean;
   hasMAX: boolean;
+  hasVoice: boolean;
   hasAISettings: boolean;
   hasAdvancedAISettings: boolean;
   hasCustomization: boolean;
@@ -24,6 +25,7 @@ export const TARIFF_LIMITS: Record<string, TariffLimits> = {
     hasTelegram: false,
     hasVK: false,
     hasMAX: false,
+    hasVoice: false,
     hasAISettings: false,
     hasAdvancedAISettings: false,
     hasCustomization: false,
@@ -40,6 +42,7 @@ export const TARIFF_LIMITS: Record<string, TariffLimits> = {
     hasTelegram: true,
     hasVK: false,
     hasMAX: false,
+    hasVoice: false,
     hasAISettings: false,
     hasAdvancedAISettings: false,
     hasCustomization: false,
@@ -56,6 +59,7 @@ export const TARIFF_LIMITS: Record<string, TariffLimits> = {
     hasTelegram: true,
     hasVK: true,
     hasMAX: true,
+    hasVoice: true,
     hasAISettings: false,
     hasAdvancedAISettings: false,
     hasCustomization: true,

@@ -1,0 +1,162 @@
+import json
+import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import requests
+from datetime import datetime
+
+def handler(event: dict, context) -> dict:
+    """Webhook для обработки входящих звонков от Voximplant и взаимодействия с AI-ботом"""
+    method = event.get('httpMethod', 'POST')
+
+    if method == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Voximplant-Signature',
+                'Access-Control-Max-Age': '86400'
+            },
+            'body': '',
+            'isBase64Encoded': False
+        }
+
+    if method != 'POST':
+        return {
+            'statusCode': 405,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': 'Method not allowed'}),
+            'isBase64Encoded': False
+        }
+
+    try:
+        body = json.loads(event.get('body', '{}'))
+        call_id = body.get('call_id')
+        event_type = body.get('event_type')
+        phone_number = body.get('phone_number', '')
+        speech_text = body.get('text', '')
+        tenant_slug = body.get('custom_data', {}).get('tenant_slug')
+
+        if not tenant_slug:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Tenant slug required in custom_data'}),
+                'isBase64Encoded': False
+            }
+
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
+
+        cur.execute(f"""
+            SELECT id, name, voximplant_enabled, voximplant_greeting
+            FROM {schema}.tenants
+            WHERE slug = %s AND voximplant_enabled = true
+        """, (tenant_slug,))
+        tenant = cur.fetchone()
+
+        if not tenant:
+            cur.close()
+            conn.close()
+            return {
+                'statusCode': 404,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Tenant not found or voice calls disabled'}),
+                'isBase64Encoded': False
+            }
+
+        tenant_id = tenant['id']
+        greeting = tenant.get('voximplant_greeting') or f"Здравствуйте! Это голосовой помощник {tenant['name']}. Чем могу помочь?"
+
+        if event_type == 'call_started':
+            response_text = greeting
+            
+            cur.execute(f"""
+                INSERT INTO {schema}.voice_calls 
+                (tenant_id, call_id, phone_number, status, started_at)
+                VALUES (%s, %s, %s, 'active', NOW())
+            """, (tenant_id, call_id, phone_number))
+            conn.commit()
+
+        elif event_type == 'speech_recognized':
+            if not speech_text:
+                response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
+            else:
+                chat_url = os.environ.get('CHAT_FUNCTION_URL')
+                if not chat_url:
+                    response_text = "Извините, сервис временно недоступен."
+                else:
+                    ai_response = requests.post(
+                        chat_url,
+                        json={
+                            'tenant_slug': tenant_slug,
+                            'session_id': f"voice_{call_id}",
+                            'message': speech_text,
+                            'channel': 'voice'
+                        },
+                        headers={'Content-Type': 'application/json'},
+                        timeout=30
+                    )
+                    
+                    if ai_response.status_code == 200:
+                        ai_data = ai_response.json()
+                        response_text = ai_data.get('response', 'Извините, не смог обработать запрос.')
+                    else:
+                        response_text = "Извините, произошла ошибка. Попробуйте позже."
+
+                cur.execute(f"""
+                    INSERT INTO {schema}.voice_messages
+                    (call_id, direction, text, created_at)
+                    VALUES (%s, 'incoming', %s, NOW())
+                """, (call_id, speech_text))
+                
+                cur.execute(f"""
+                    INSERT INTO {schema}.voice_messages
+                    (call_id, direction, text, created_at)
+                    VALUES (%s, 'outgoing', %s, NOW())
+                """, (call_id, response_text))
+                conn.commit()
+
+        elif event_type == 'call_ended':
+            cur.execute(f"""
+                UPDATE {schema}.voice_calls
+                SET status = 'completed', ended_at = NOW()
+                WHERE call_id = %s
+            """, (call_id,))
+            conn.commit()
+            
+            cur.close()
+            conn.close()
+            
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'status': 'call_ended'}),
+                'isBase64Encoded': False
+            }
+        else:
+            response_text = "Извините, произошла ошибка."
+
+        cur.close()
+        conn.close()
+
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({
+                'response': response_text,
+                'action': 'speak',
+                'voice': 'ru-RU-Standard-A'
+            }),
+            'isBase64Encoded': False
+        }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': str(e)}),
+            'isBase64Encoded': False
+        }

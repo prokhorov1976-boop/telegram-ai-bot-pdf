@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Handle incoming call started event",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "event_type": "call_started",
+        "call_id": "test-call-123",
+        "phone_number": "+79001234567",
+        "custom_data": {
+          "tenant_slug": "test-hotel"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "response": "string",
+        "action": "speak"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Handle OPTIONS for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
