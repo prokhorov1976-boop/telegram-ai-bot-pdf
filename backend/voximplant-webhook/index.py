@@ -164,7 +164,8 @@ def handler(event: dict, context) -> dict:
             'body': json.dumps({
                 'response': response_text,
                 'action': 'speak',
-                'voice': 'Yandex.Филипп'
+                'voice': 'filipp',
+                'language': 'ru-RU'
             }),
             'isBase64Encoded': False
         }
