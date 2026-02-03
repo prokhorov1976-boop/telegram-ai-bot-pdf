@@ -1,4 +1,5 @@
 {
+  "fix-dinasty-quality-gate": "https://functions.poehali.dev/93abd7b9-3195-425d-8a8c-93d173fe59c0",
   "voximplant-asr-webhook": "https://functions.poehali.dev/d9d8797d-e617-416f-a195-024c6cad29b2",
   "get-voice-calls": "https://functions.poehali.dev/7a4186cc-a5ef-4b6d-86b9-4461c199f97a",
   "voice-recognition": "https://functions.poehali.dev/b5237645-271f-432f-b034-a63f038f5bb1",

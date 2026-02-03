@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Update quality gate settings",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "tenant_id": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
