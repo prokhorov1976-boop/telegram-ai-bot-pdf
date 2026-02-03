@@ -53,13 +53,15 @@ def handler(event: dict, context) -> dict:
 
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
+        schema = 't_p56134400_telegram_ai_bot_pdf'
 
         cur.execute(f"""
             SELECT id, name, voximplant_enabled, voximplant_greeting
             FROM {schema}.tenants
             WHERE slug = %s AND voximplant_enabled = true
         """, (tenant_slug,))
+        
+        print(f"[Voximplant] Looking for tenant: slug={tenant_slug}, schema={schema}")
         tenant = cur.fetchone()
 
         if not tenant:
