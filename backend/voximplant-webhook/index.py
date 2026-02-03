@@ -4,6 +4,18 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import requests
 from datetime import datetime
+from pathlib import Path
+
+# Читаем URL функции chat из func2url.json
+FUNC2URL_PATH = Path(__file__).parent.parent / 'func2url.json'
+CHAT_FUNCTION_URL = None
+
+try:
+    with open(FUNC2URL_PATH, 'r') as f:
+        func2url = json.load(f)
+        CHAT_FUNCTION_URL = func2url.get('chat')
+except Exception as e:
+    print(f"[Voximplant] Ошибка чтения func2url.json: {e}")
 
 def handler(event: dict, context) -> dict:
     """Webhook для обработки входящих звонков от Voximplant и взаимодействия с AI-ботом"""
@@ -86,37 +98,42 @@ def handler(event: dict, context) -> dict:
             if not speech_text:
                 response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
             else:
-                # URL функции chat (захардкожен, т.к. CHAT_FUNCTION_URL содержит Telegram токен)
-                chat_url = 'https://functions.poehali.dev/7b58f4fb-5db0-4f85-bb3b-55bafa4cbf73'
+                # Получаем URL функции chat из func2url.json или fallback
+                chat_url = CHAT_FUNCTION_URL or os.environ.get('CHAT_FUNCTION_URL')
                 
-                print(f"[Voximplant] Отправка в AI: url={chat_url}, message={speech_text}")
-                
-                try:
-                    ai_response = requests.post(
-                        chat_url,
-                        json={
-                            'tenant_slug': tenant_slug,
-                            'session_id': f"voice_{call_id}",
-                            'message': speech_text,
-                            'channel': 'voice'
-                        },
-                        headers={'Content-Type': 'application/json'},
-                        timeout=30
-                    )
-                    
-                    print(f"[Voximplant] AI response: status={ai_response.status_code}, body={ai_response.text[:500]}")
-                    
-                    if ai_response.status_code == 200:
-                        ai_data = ai_response.json()
-                        response_text = ai_data.get('response', 'Извините, не смог обработать запрос.')
-                        print(f"[Voximplant] AI answer: {response_text}")
-                    else:
-                        response_text = "Извините, произошла ошибка. Попробуйте позже."
-                        print(f"[Voximplant] AI error: status {ai_response.status_code}")
-                except Exception as e:
+                if not chat_url or not chat_url.startswith('https://'):
+                    print(f"[Voximplant] ERROR: Invalid CHAT_FUNCTION_URL: {chat_url}")
                     response_text = "Извините, сервис временно недоступен."
-                    print(f"[Voximplant] Exception calling AI: {str(e)}")
+                else:
+                    print(f"[Voximplant] Отправка в AI: url={chat_url}, message={speech_text}")
+                    
+                    try:
+                        ai_response = requests.post(
+                            chat_url,
+                            json={
+                                'tenant_slug': tenant_slug,
+                                'session_id': f"voice_{call_id}",
+                                'message': speech_text,
+                                'channel': 'voice'
+                            },
+                            headers={'Content-Type': 'application/json'},
+                            timeout=30
+                        )
+                        
+                        print(f"[Voximplant] AI response: status={ai_response.status_code}, body={ai_response.text[:500]}")
+                        
+                        if ai_response.status_code == 200:
+                            ai_data = ai_response.json()
+                            response_text = ai_data.get('response', 'Извините, не смог обработать запрос.')
+                            print(f"[Voximplant] AI answer: {response_text}")
+                        else:
+                            response_text = "Извините, произошла ошибка. Попробуйте позже."
+                            print(f"[Voximplant] AI error: status {ai_response.status_code}")
+                    except Exception as e:
+                        response_text = "Извините, сервис временно недоступен."
+                        print(f"[Voximplant] Exception calling AI: {str(e)}")
 
+                # Сохраняем сообщения в БД
                 cur.execute(f"""
                     INSERT INTO {schema}.voice_messages
                     (call_id, direction, text, created_at)
