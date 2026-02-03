@@ -31,6 +31,10 @@ def handler(event: dict, context) -> dict:
     try:
         params = event.get('queryStringParameters', {}) or {}
         tenant_id = params.get('tenant_id')
+        status_filter = params.get('status')
+        phone_filter = params.get('phone')
+        date_from = params.get('date_from')
+        date_to = params.get('date_to')
         
         if not tenant_id:
             return {
@@ -44,6 +48,28 @@ def handler(event: dict, context) -> dict:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
 
+        # Строим WHERE условия с фильтрами
+        where_conditions = ["vc.tenant_id = %s"]
+        query_params = [tenant_id]
+        
+        if status_filter:
+            where_conditions.append("vc.status = %s")
+            query_params.append(status_filter)
+        
+        if phone_filter:
+            where_conditions.append("vc.phone_number ILIKE %s")
+            query_params.append(f"%{phone_filter}%")
+        
+        if date_from:
+            where_conditions.append("vc.started_at >= %s")
+            query_params.append(date_from)
+        
+        if date_to:
+            where_conditions.append("vc.started_at <= %s")
+            query_params.append(date_to)
+        
+        where_clause = " AND ".join(where_conditions)
+
         cur.execute(f"""
             SELECT 
                 vc.id,
@@ -53,10 +79,10 @@ def handler(event: dict, context) -> dict:
                 vc.started_at,
                 vc.ended_at
             FROM {schema}.voice_calls vc
-            WHERE vc.tenant_id = %s
+            WHERE {where_clause}
             ORDER BY vc.started_at DESC
             LIMIT 100
-        """, (tenant_id,))
+        """, tuple(query_params))
         
         calls = cur.fetchall()
         

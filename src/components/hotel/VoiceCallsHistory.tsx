@@ -4,6 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { BACKEND_URLS } from './types';
@@ -33,17 +36,37 @@ const VoiceCallsHistory = ({ tenantId }: VoiceCallsHistoryProps) => {
   const [calls, setCalls] = useState<VoiceCall[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedCallId, setExpandedCallId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [phoneFilter, setPhoneFilter] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCalls();
     const interval = setInterval(loadCalls, 30000);
     return () => clearInterval(interval);
-  }, [tenantId]);
+  }, [tenantId, statusFilter, phoneFilter, dateFrom, dateTo]);
 
   const loadCalls = async () => {
     try {
-      const response = await fetch(`${BACKEND_URLS.getVoiceCalls}?tenant_id=${tenantId}`);
+      const params = new URLSearchParams({ tenant_id: tenantId.toString() });
+      
+      if (statusFilter && statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+      if (phoneFilter) {
+        params.append('phone', phoneFilter);
+      }
+      if (dateFrom) {
+        params.append('date_from', dateFrom);
+      }
+      if (dateTo) {
+        params.append('date_to', dateTo);
+      }
+      
+      const response = await fetch(`${BACKEND_URLS.getVoiceCalls}?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to load voice calls');
       const data = await response.json();
       setCalls(data.calls || []);
@@ -57,6 +80,13 @@ const VoiceCallsHistory = ({ tenantId }: VoiceCallsHistoryProps) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleResetFilters = () => {
+    setStatusFilter('all');
+    setPhoneFilter('');
+    setDateFrom('');
+    setDateTo('');
   };
 
   const formatDate = (dateString: string) => {
@@ -115,13 +145,91 @@ const VoiceCallsHistory = ({ tenantId }: VoiceCallsHistoryProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon name="Phone" size={24} />
-          История голосовых звонков
-        </CardTitle>
-        <CardDescription>
-          Всего звонков: {calls.length}
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Icon name="Phone" size={24} />
+              История голосовых звонков
+            </CardTitle>
+            <CardDescription>
+              Найдено звонков: {calls.length}
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2"
+          >
+            <Icon name="Filter" size={18} />
+            {showFilters ? 'Скрыть фильтры' : 'Фильтры'}
+          </Button>
+        </div>
+        
+        {showFilters && (
+          <div className="mt-4 space-y-4 p-4 border rounded-lg bg-muted/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>Статус</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Все статусы" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все статусы</SelectItem>
+                    <SelectItem value="active">Активен</SelectItem>
+                    <SelectItem value="completed">Завершён</SelectItem>
+                    <SelectItem value="failed">Ошибка</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Телефон</Label>
+                <Input
+                  placeholder="Поиск по номеру"
+                  value={phoneFilter}
+                  onChange={(e) => setPhoneFilter(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Дата с</Label>
+                <Input
+                  type="datetime-local"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Дата по</Label>
+                <Input
+                  type="datetime-local"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={handleResetFilters}
+                className="flex items-center gap-2"
+              >
+                <Icon name="X" size={16} />
+                Сбросить
+              </Button>
+              <Button
+                onClick={() => loadCalls()}
+                className="flex items-center gap-2"
+              >
+                <Icon name="Search" size={16} />
+                Применить
+              </Button>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {calls.length === 0 ? (
