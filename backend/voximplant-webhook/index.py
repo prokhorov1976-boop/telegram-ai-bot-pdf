@@ -92,17 +92,18 @@ def handler(event: dict, context) -> dict:
                 response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
             else:
                 chat_url = CHAT_FUNCTION_URL
-                print(f"[Voximplant] Отправка в AI: url={chat_url}, message={speech_text}")
+                request_payload = {
+                    'tenantSlug': tenant_slug,
+                    'sessionId': f"voice_{call_id}",
+                    'message': speech_text,
+                    'channel': 'voice'
+                }
+                print(f"[Voximplant] Отправка в AI: url={chat_url}, payload={request_payload}")
                 
                 try:
                     ai_response = requests.post(
                         chat_url,
-                        json={
-                            'tenantSlug': tenant_slug,
-                            'sessionId': f"voice_{call_id}",
-                            'message': speech_text,
-                            'channel': 'voice'
-                        },
+                        json=request_payload,
                         headers={'Content-Type': 'application/json'},
                         timeout=30
                     )

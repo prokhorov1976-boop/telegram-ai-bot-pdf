@@ -178,7 +178,7 @@ def handler(event: dict, context) -> dict:
         if tenant_id is not None:
             tenant_id = int(tenant_id)
         
-        print(f"DEBUG START: tenant_id={tenant_id} (type={type(tenant_id)}), user_message='{user_message[:50]}')")
+        print(f"🚀 DEBUG RECEIVED: tenant_id={tenant_id}, tenant_slug='{tenant_slug}', channel='{channel}', message='{user_message[:50]}'")
 
         if not user_message:
             return {
