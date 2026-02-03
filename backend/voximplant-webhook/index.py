@@ -98,8 +98,8 @@ def handler(event: dict, context) -> dict:
                     ai_response = requests.post(
                         chat_url,
                         json={
-                            'tenant_slug': tenant_slug,
-                            'session_id': f"voice_{call_id}",
+                            'tenantSlug': tenant_slug,
+                            'sessionId': f"voice_{call_id}",
                             'message': speech_text,
                             'channel': 'voice'
                         },
