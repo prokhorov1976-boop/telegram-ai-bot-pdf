@@ -86,8 +86,8 @@ def handler(event: dict, context) -> dict:
             if not speech_text:
                 response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
             else:
-                # Читаем URL функции chat из func2url.json
-                chat_url = os.environ.get('CHAT_FUNCTION_URL', 'https://functions.poehali.dev/7b58f4fb-5db0-4f85-bb3b-55bafa4cbf73')
+                # URL функции chat (захардкожен, т.к. CHAT_FUNCTION_URL содержит Telegram токен)
+                chat_url = 'https://functions.poehali.dev/7b58f4fb-5db0-4f85-bb3b-55bafa4cbf73'
                 
                 print(f"[Voximplant] Отправка в AI: url={chat_url}, message={speech_text}")
                 
