@@ -1,4 +1,5 @@
 {
+  "grok-proxy": "https://functions.poehali.dev/e04319c3-bafb-4ee9-a53c-15c6d03d0543",
   "voximplant-webhook": "https://functions.poehali.dev/7adc3631-e74d-43dc-88f4-d008c285f8f2",
   "manage-proxy-settings": "https://functions.poehali.dev/9e4ccf79-e896-4279-9f09-6bb78ed1b7cc",
   "speech-recognition": "https://functions.poehali.dev/66ab8736-2781-4c63-9c2e-09f2061f7c7a",
