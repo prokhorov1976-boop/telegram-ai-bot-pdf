@@ -167,17 +167,17 @@ def handler(event: dict, context) -> dict:
         conn.close()
 
         response_data = {
-            'response': response_text,
-            'action': 'speak',
-            'voice': 'filipp',
-            'language': 'ru-RU'
+            'text': response_text,
+            'action': 'speak'
         }
+        response_body = json.dumps(response_data)
         print(f"[Voximplant] Returning response: {response_data}")
+        print(f"[Voximplant] JSON body: {response_body}")
 
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps(response_data),
+            'body': response_body,
             'isBase64Encoded': False
         }
 
