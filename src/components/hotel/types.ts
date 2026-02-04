@@ -64,6 +64,7 @@ export interface AiModelSettings {
   system_priority?: string;
   creative_mode?: string;
   system_prompt?: string;
+  voice_system_prompt?: string;
   rag_topk_default?: number;
   rag_topk_fallback?: number;
 }

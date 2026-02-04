@@ -385,7 +385,7 @@ const AiSettingsCard = ({ currentTenantId, isSuperAdmin = false }: AiSettingsCar
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="system_prompt">Системный промпт</Label>
+          <Label htmlFor="system_prompt">Системный промпт (чат, виджет, мессенджеры)</Label>
           <Textarea
             id="system_prompt"
             value={settings.system_prompt || ''}
@@ -395,7 +395,22 @@ const AiSettingsCard = ({ currentTenantId, isSuperAdmin = false }: AiSettingsCar
             className="font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Системный промпт определяет поведение и стиль ответов AI
+            Системный промпт определяет поведение и стиль ответов AI в чате и мессенджерах
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="voice_system_prompt">Системный промпт для голосовых звонков</Label>
+          <Textarea
+            id="voice_system_prompt"
+            value={settings.voice_system_prompt || ''}
+            onChange={(e) => setSettings({ ...settings, voice_system_prompt: e.target.value })}
+            placeholder="Ты голосовой консьерж отеля. Отвечай коротко и ясно, максимум 2-3 предложения..."
+            rows={6}
+            className="font-mono text-sm"
+          />
+          <p className="text-xs text-muted-foreground">
+            💡 Для голосовых звонков важно отвечать кратко (2-3 предложения), без списков и длинных текстов
           </p>
         </div>
 
