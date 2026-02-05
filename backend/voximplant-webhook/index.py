@@ -61,8 +61,7 @@ def handler(event: dict, context) -> dict:
         schema = 't_p56134400_telegram_ai_bot_pdf'
 
         cur.execute(f"""
-            SELECT t.id, t.name, t.voximplant_enabled, t.voximplant_greeting, 
-                   t.voximplant_greeting_audio_url, ts.ai_settings
+            SELECT t.id, t.name, t.voximplant_enabled, t.voximplant_greeting, ts.ai_settings
             FROM {schema}.tenants t
             LEFT JOIN {schema}.tenant_settings ts ON ts.tenant_id = t.id
             WHERE t.slug = '{tenant_slug}' AND t.voximplant_enabled = true
@@ -83,23 +82,14 @@ def handler(event: dict, context) -> dict:
 
         tenant_id = tenant['id']
         greeting = tenant.get('voximplant_greeting') or f"Здравствуйте! Это голосовой помощник {tenant['name']}. Чем могу помочь?"
-        greeting_audio_url = tenant.get('voximplant_greeting_audio_url')
         
         ai_settings = tenant.get('ai_settings') or {}
         call_transfer_enabled = ai_settings.get('call_transfer_enabled', False)
         admin_phone = ai_settings.get('admin_phone_number', '')
 
         if event_type == 'call_started':
-            # Если есть заготовленное аудио - используем его, иначе текст
-            if greeting_audio_url:
-                response_data = {
-                    'audio_url': greeting_audio_url,
-                    'action': 'play_audio'
-                }
-                print(f"[Voximplant] call_started: using pre-recorded audio={greeting_audio_url}")
-            else:
-                response_text = greeting
-                print(f"[Voximplant] call_started: greeting='{response_text[:100]}'")
+            response_text = greeting
+            print(f"[Voximplant] call_started: greeting='{response_text[:100]}'")
             
             cur.execute(f"""
                 INSERT INTO {schema}.voice_calls 
@@ -200,13 +190,10 @@ def handler(event: dict, context) -> dict:
         cur.close()
         conn.close()
 
-        # Если для call_started было задано аудио, response_data уже установлена
-        if event_type != 'call_started' or not greeting_audio_url:
-            response_data = {
-                'text': response_text,
-                'action': 'speak'
-            }
-        
+        response_data = {
+            'text': response_text,
+            'action': 'speak'
+        }
         response_body = json.dumps(response_data)
         print(f"[Voximplant] Returning response: {response_data}")
         print(f"[Voximplant] JSON body: {response_body}")
