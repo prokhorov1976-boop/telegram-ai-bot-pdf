@@ -29,6 +29,7 @@ import PublicChatLinkCard from './PublicChatLinkCard';
 import SpeechSettingsCard from './SpeechSettingsCard';
 import ProxySettingsCard from './ProxySettingsCard';
 import VoiceCallsHistory from './VoiceCallsHistory';
+import VoiceSettingsCard from './VoiceSettingsCard';
 import { Document, BACKEND_URLS } from './types';
 import { getTenantId, getTariffId, isSuperAdmin, getAdminUser, exitTenantView } from '@/lib/auth';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -63,7 +64,7 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
     4 + // Документы, Мессенджеры, Страница, Виджет (всегда)
     ((superAdmin || fz152Enabled) ? 1 : 0) + // AI
     (fz152Enabled ? 1 : 0) + // 152-ФЗ
-    (superAdmin ? 1 : 0); // Эмбеддинги
+    (superAdmin ? 2 : 0); // Эмбеддинги + Голос (только суперадмин)
 
   const handleExitTenantView = () => {
     exitTenantView();
@@ -122,6 +123,12 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
             <TabsTrigger value="embeddings" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=inactive]:text-white py-3 px-4 text-base font-semibold">
               <Icon name="BrainCircuit" size={20} className="mr-2" />
               <span>Эмбеддинги</span>
+            </TabsTrigger>
+          )}
+          {superAdmin && (
+            <TabsTrigger value="voice" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=inactive]:text-white py-3 px-4 text-base font-semibold">
+              <Icon name="Phone" size={20} className="mr-2" />
+              <span>Голос</span>
             </TabsTrigger>
           )}
         </TabsList>
@@ -303,6 +310,15 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
               currentTenantId={currentTenantId}
               tenantName={tenantName}
               fz152Enabled={fz152Enabled}
+            />
+          </TabsContent>
+        )}
+
+        {superAdmin && currentTenantId && (
+          <TabsContent value="voice" className="space-y-6">
+            <VoiceSettingsCard
+              tenantId={currentTenantId}
+              tenantName={tenantName}
             />
           </TabsContent>
         )}
