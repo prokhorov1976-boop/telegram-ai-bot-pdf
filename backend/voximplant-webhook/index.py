@@ -61,9 +61,10 @@ def handler(event: dict, context) -> dict:
         schema = 't_p56134400_telegram_ai_bot_pdf'
 
         cur.execute(f"""
-            SELECT id, name, voximplant_enabled, voximplant_greeting
-            FROM {schema}.tenants
-            WHERE slug = '{tenant_slug}' AND voximplant_enabled = true
+            SELECT t.id, t.name, t.voximplant_enabled, t.voximplant_greeting, ts.ai_settings
+            FROM {schema}.tenants t
+            LEFT JOIN {schema}.tenant_settings ts ON ts.tenant_id = t.id
+            WHERE t.slug = '{tenant_slug}' AND t.voximplant_enabled = true
         """)
         
         print(f"[Voximplant] Looking for tenant: slug={tenant_slug}, schema={schema}")
@@ -81,6 +82,10 @@ def handler(event: dict, context) -> dict:
 
         tenant_id = tenant['id']
         greeting = tenant.get('voximplant_greeting') or f"Здравствуйте! Это голосовой помощник {tenant['name']}. Чем могу помочь?"
+        
+        ai_settings = tenant.get('ai_settings') or {}
+        call_transfer_enabled = ai_settings.get('call_transfer_enabled', False)
+        admin_phone = ai_settings.get('admin_phone_number', '')
 
         if event_type == 'call_started':
             response_text = greeting
@@ -122,6 +127,25 @@ def handler(event: dict, context) -> dict:
                         ai_data = ai_response.json()
                         response_text = ai_data.get('message', 'Извините, не смог обработать запрос.')
                         print(f"[Voximplant] AI answer: {response_text}")
+                        
+                        # Проверка команды перевода звонка
+                        if call_transfer_enabled and admin_phone and 'TRANSFER_CALL' in response_text:
+                            print(f"[Voximplant] Transfer detected: forwarding to {admin_phone}")
+                            response_text = response_text.replace('TRANSFER_CALL', '').strip()
+                            
+                            cur.close()
+                            conn.close()
+                            
+                            return {
+                                'statusCode': 200,
+                                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                                'body': json.dumps({
+                                    'text': response_text,
+                                    'action': 'transfer',
+                                    'phone_number': admin_phone
+                                }),
+                                'isBase64Encoded': False
+                            }
                     else:
                         response_text = "Извините, произошла ошибка. Попробуйте позже."
                         print(f"[Voximplant] AI error: status {ai_response.status_code}")
