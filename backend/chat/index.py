@@ -255,10 +255,16 @@ def handler(event: dict, context) -> dict:
         
         if settings_row and settings_row[0]:
             settings = settings_row[0]
-            ai_model = settings.get('model', 'yandexgpt')
-            ai_provider = settings.get('provider', 'yandex')
             
-            print(f"DEBUG: Loaded from DB - model={ai_model}, provider={ai_provider}")
+            # Для голосовых звонков используем отдельные настройки модели, если есть
+            if channel == 'voice' and settings.get('voice_model') and settings.get('voice_provider'):
+                ai_model = settings.get('voice_model')
+                ai_provider = settings.get('voice_provider')
+                print(f"DEBUG: Using VOICE model - model={ai_model}, provider={ai_provider}")
+            else:
+                ai_model = settings.get('model', 'yandexgpt')
+                ai_provider = settings.get('provider', 'yandex')
+                print(f"DEBUG: Loaded from DB - model={ai_model}, provider={ai_provider}")
             
             # Получаем реальные значения для API
             try:
@@ -288,11 +294,14 @@ def handler(event: dict, context) -> dict:
                 except (ValueError, TypeError):
                     return default
             
+            # Для голосовых звонков уменьшаем max_tokens для более быстрых ответов
+            default_max_tokens = 500 if channel == 'voice' else 2000
+            
             ai_temperature = safe_float(settings.get('temperature'), 0.7)
             ai_top_p = safe_float(settings.get('top_p'), 0.95)
             ai_frequency_penalty = safe_float(settings.get('frequency_penalty'), 0.0)
             ai_presence_penalty = safe_float(settings.get('presence_penalty'), 0.0)
-            ai_max_tokens = safe_int(settings.get('max_tokens'), 2000)
+            ai_max_tokens = safe_int(settings.get('max_tokens'), default_max_tokens)
             
             # Используем voice_system_prompt для голосовых звонков, если указан
             voice_system_prompt = settings.get('voice_system_prompt')
