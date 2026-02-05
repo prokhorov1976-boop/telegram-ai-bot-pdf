@@ -124,16 +124,16 @@ def handler(event: dict, context) -> dict:
                             jsonb_set(
                                 COALESCE(ai_settings, '{{}}'::jsonb),
                                 '{{voice_system_prompt}}',
-                                '"{voice_system_prompt}"'::jsonb
+                                to_jsonb('{voice_system_prompt}'::text)
                             ),
                             '{{voice_model}}',
-                            '"{voice_model}"'::jsonb
+                            to_jsonb('{voice_model}'::text)
                         ),
                         '{{voice_provider}}',
-                        '"{voice_provider}"'::jsonb
+                        to_jsonb('{voice_provider}'::text)
                     ),
                     '{{max_tokens}}',
-                    '{max_tokens}'::jsonb
+                    to_jsonb({max_tokens})
                 )
                 WHERE tenant_id = {int(tenant_id)}
             """)
