@@ -76,7 +76,9 @@ def handler(event: dict, context) -> dict:
                 'voice_system_prompt': ai_settings.get('voice_system_prompt', ''),
                 'voice_model': ai_settings.get('voice_model', 'gemini-2.0-flash'),
                 'voice_provider': ai_settings.get('voice_provider', 'openrouter'),
-                'max_tokens': ai_settings.get('max_tokens', 500)
+                'max_tokens': ai_settings.get('max_tokens', 500),
+                'call_transfer_enabled': ai_settings.get('call_transfer_enabled', False),
+                'admin_phone_number': ai_settings.get('admin_phone_number', '')
             }
 
             cur.close()
@@ -107,6 +109,8 @@ def handler(event: dict, context) -> dict:
             voice_model = body.get('voice_model', 'gemini-2.0-flash')
             voice_provider = body.get('voice_provider', 'openrouter')
             max_tokens = int(body.get('max_tokens', 500))
+            call_transfer_enabled = body.get('call_transfer_enabled', False)
+            admin_phone_number = body.get('admin_phone_number', '').replace("'", "''")
 
             cur.execute(f"""
                 UPDATE {schema}.tenants 
@@ -122,18 +126,26 @@ def handler(event: dict, context) -> dict:
                     jsonb_set(
                         jsonb_set(
                             jsonb_set(
-                                COALESCE(ai_settings, '{{}}'::jsonb),
-                                '{{voice_system_prompt}}',
-                                to_jsonb('{voice_system_prompt}'::text)
+                                jsonb_set(
+                                    jsonb_set(
+                                        COALESCE(ai_settings, '{{}}'::jsonb),
+                                        '{{voice_system_prompt}}',
+                                        to_jsonb('{voice_system_prompt}'::text)
+                                    ),
+                                    '{{voice_model}}',
+                                    to_jsonb('{voice_model}'::text)
+                                ),
+                                '{{voice_provider}}',
+                                to_jsonb('{voice_provider}'::text)
                             ),
-                            '{{voice_model}}',
-                            to_jsonb('{voice_model}'::text)
+                            '{{max_tokens}}',
+                            to_jsonb({max_tokens})
                         ),
-                        '{{voice_provider}}',
-                        to_jsonb('{voice_provider}'::text)
+                        '{{call_transfer_enabled}}',
+                        to_jsonb({str(call_transfer_enabled).lower()})
                     ),
-                    '{{max_tokens}}',
-                    to_jsonb({max_tokens})
+                    '{{admin_phone_number}}',
+                    to_jsonb('{admin_phone_number}'::text)
                 )
                 WHERE tenant_id = {int(tenant_id)}
             """)

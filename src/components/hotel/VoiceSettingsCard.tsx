@@ -22,6 +22,8 @@ interface VoiceSettings {
   voice_model: string;
   voice_provider: string;
   max_tokens: number;
+  call_transfer_enabled: boolean;
+  admin_phone_number: string;
 }
 
 const AI_MODELS = {
@@ -60,6 +62,10 @@ const DEFAULT_VOICE_PROMPT = `Ты — AI-консьерж по телефону
 - После каждой порции: Рассказать про остальные?
 - Никаких эмодзи, звездочек, HTML тегов
 
+ПЕРЕВОД НА ОПЕРАТОРА:
+- Если клиент просит живого человека/администратора/оператора — НЕМЕДЛЕННО переведи звонок командой: TRANSFER_CALL
+- Скажи: "Конечно, сейчас соединю с администратором. Минутку." и используй команду TRANSFER_CALL
+
 ДОСТУПНАЯ ИНФОРМАЦИЯ:
 {rag_context_placeholder}
 
@@ -75,7 +81,9 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
     voice_system_prompt: DEFAULT_VOICE_PROMPT,
     voice_model: 'gemini-2.0-flash',
     voice_provider: 'openrouter',
-    max_tokens: 500
+    max_tokens: 500,
+    call_transfer_enabled: false,
+    admin_phone_number: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -98,7 +106,9 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
           voice_system_prompt: data.voice_system_prompt || DEFAULT_VOICE_PROMPT,
           voice_model: data.voice_model || 'gemini-2.0-flash',
           voice_provider: data.voice_provider || 'openrouter',
-          max_tokens: data.max_tokens || 500
+          max_tokens: data.max_tokens || 500,
+          call_transfer_enabled: data.call_transfer_enabled || false,
+          admin_phone_number: data.admin_phone_number || ''
         });
       }
     } catch (error) {
@@ -212,6 +222,47 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
           <p className="text-xs text-muted-foreground">
             Текст, который озвучивается при входящем звонке
           </p>
+        </div>
+
+        {/* Перевод на оператора */}
+        <div className="space-y-4 p-4 border-2 border-green-200 rounded-lg bg-green-50/30">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="call-transfer" className="text-base font-semibold flex items-center gap-2">
+                <Icon name="PhoneForwarded" size={20} className="text-green-600" />
+                Перевод на оператора
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                AI автоматически переведет звонок, если клиент попросит живого человека
+              </p>
+            </div>
+            <Switch
+              id="call-transfer"
+              checked={settings.call_transfer_enabled}
+              onCheckedChange={(checked) =>
+                setSettings(prev => ({ ...prev, call_transfer_enabled: checked }))
+              }
+            />
+          </div>
+
+          {settings.call_transfer_enabled && (
+            <div className="space-y-2">
+              <Label htmlFor="admin-phone">Номер телефона администратора</Label>
+              <Input
+                id="admin-phone"
+                type="tel"
+                placeholder="+79991234567"
+                value={settings.admin_phone_number}
+                onChange={(e) =>
+                  setSettings(prev => ({ ...prev, admin_phone_number: e.target.value }))
+                }
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                На этот номер будут переводиться звонки при запросе оператора
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Выбор AI модели */}
