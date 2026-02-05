@@ -33,5 +33,6 @@ export const BACKEND_URLS = {
   consentSettings: 'https://functions.poehali.dev/2f7a79a2-87ef-4692-b9a6-1e23f408edaa',
   automationSettings: 'https://functions.poehali.dev/a56d419e-8694-4b5f-836e-3e7351155c7f',
   tokenStats: 'https://functions.poehali.dev/c88cb0c9-4dd7-47a7-b4dc-0d381a8207e1',
-  chatStats: 'https://functions.poehali.dev/61fc762a-0e98-41b4-b1b4-406c5e73f78a'
+  chatStats: 'https://functions.poehali.dev/61fc762a-0e98-41b4-b1b4-406c5e73f78a',
+  voice_settings: 'https://functions.poehali.dev/4e537d54-09a0-458a-b7b1-3687b690e7c1'
 };

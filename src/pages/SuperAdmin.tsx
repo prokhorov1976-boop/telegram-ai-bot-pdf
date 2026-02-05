@@ -16,6 +16,7 @@ import { ConsentLogsTab } from '@/components/superadmin/ConsentLogsTab';
 import { SupportTab } from '@/components/superadmin/SupportTab';
 import { TokenStatsTab } from '@/components/superadmin/TokenStatsTab';
 import { ChatStatsTab } from '@/components/superadmin/ChatStatsTab';
+import { VoiceCallsTab } from '@/components/superadmin/VoiceCallsTab';
 
 import { TenantEditDialog } from '@/components/superadmin/TenantEditDialog';
 import { TariffEditDialog } from '@/components/superadmin/TariffEditDialog';
@@ -311,6 +312,10 @@ const SuperAdmin = () => {
               <Icon name="MessageSquare" size={14} className="sm:mr-1.5" />
               <span className="hidden sm:inline">Токены чат</span>
             </TabsTrigger>
+            <TabsTrigger value="voice-calls" className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-3">
+              <Icon name="Phone" size={14} className="sm:mr-1.5" />
+              <span className="hidden sm:inline">Голос</span>
+            </TabsTrigger>
 
           </TabsList>
 
@@ -376,6 +381,10 @@ const SuperAdmin = () => {
 
           <TabsContent value="chat-stats" className="space-y-6">
             <ChatStatsTab tenants={tenants} />
+          </TabsContent>
+
+          <TabsContent value="voice-calls" className="space-y-6">
+            <VoiceCallsTab tenants={tenants} />
           </TabsContent>
 
 
