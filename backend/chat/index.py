@@ -899,8 +899,12 @@ def handler(event: dict, context) -> dict:
             openai_http_client = None
             if proxy_settings.get('openai', {}).get('enabled') and proxy_settings['openai'].get('proxy'):
                 import httpx
-                openai_http_client = httpx.Client(proxies=proxy_settings['openai']['proxy'])
-                print(f"[chat] Using proxy for OpenAI: {list(proxy_settings['openai']['proxy'].values())[0][:50]}...")
+                proxy_url = proxy_settings['openai']['proxy']['http://']
+                print(f"[chat] Using proxy for OpenAI: {proxy_url[:50]}...")
+                openai_http_client = httpx.Client(proxies={
+                    'http://': proxy_url,
+                    'https://': proxy_url
+                })
             
             chat_client = OpenAI(
                 api_key=openai_key,
