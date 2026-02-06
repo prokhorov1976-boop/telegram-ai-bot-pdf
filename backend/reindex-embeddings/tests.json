@@ -1,12 +1,22 @@
 {
   "tests": [
     {
-      "name": "Get reindexing status (auth required)",
+      "name": "Get reindexing status requires tenant_id",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 401,
+      "expectedStatus": 400,
       "expectedBody": {
-        "error": "Authorization required"
+        "error": "tenant_id query parameter required"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get reindexing status with tenant_id",
+      "method": "GET",
+      "path": "/?tenant_id=1",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "status": "string"
       },
       "bodyMatcher": "partial"
     }

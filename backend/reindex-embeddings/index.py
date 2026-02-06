@@ -4,7 +4,6 @@ import psycopg2
 import sys
 sys.path.append('/function/code')
 from api_keys_helper import get_tenant_api_key
-from auth_middleware import get_tenant_id_from_request
 
 def handler(event: dict, context) -> dict:
     """Переиндексация эмбеддингов после смены модели"""
@@ -23,9 +22,19 @@ def handler(event: dict, context) -> dict:
         }
 
     try:
-        tenant_id, auth_error = get_tenant_id_from_request(event)
-        if auth_error:
-            return auth_error
+        # Получаем tenant_id из query параметров (передается фронтендом)
+        query_params = event.get('queryStringParameters') or {}
+        tenant_id = query_params.get('tenant_id')
+        
+        if not tenant_id:
+            return {
+                'statusCode': 400,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'tenant_id query parameter required'}),
+                'isBase64Encoded': False
+            }
+        
+        tenant_id = int(tenant_id)
 
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
