@@ -387,10 +387,48 @@ def handler(event: dict, context) -> dict:
         user_message_converted = convert_relative_dates(user_message)
         print(f"DEBUG: User message AFTER conversion: '{user_message_converted}' (changed: {user_message_converted != user_message})")
         
+        # Обогащаем запрос: если указана дата без года, добавляем год и период
+        def enrich_date_query(text):
+            """Добавляет год к датам и преобразует в формат периода для лучшего поиска"""
+            today = now_moscow().date()
+            current_year = today.year
+            next_year = current_year + 1
+            
+            # Паттерн: "12 марта", "8 марта", "15 апреля" и т.д.
+            date_pattern = r'(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)'
+            match = re.search(date_pattern, text, re.IGNORECASE)
+            
+            if match:
+                day_str = match.group(1)
+                month_name = match.group(2).lower()
+                
+                months_map = {
+                    'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4, 
+                    'мая': 5, 'июня': 6, 'июля': 7, 'августа': 8,
+                    'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12
+                }
+                
+                if month_name in months_map:
+                    month_num = months_map[month_name]
+                    
+                    # Если месяц уже прошёл в текущем году, берём следующий год
+                    if month_num < today.month or (month_num == today.month and int(day_str) < today.day):
+                        year = next_year
+                    else:
+                        year = current_year
+                    
+                    # Добавляем формат "Период: 01.03.2026-31.03.2026" для лучшего поиска
+                    enriched = f"{text} Период 01.{month_num:02d}.{year}"
+                    print(f"DEBUG: Enriched date query: '{text}' → '{enriched}'")
+                    return enriched
+            
+            return text
+        
         context_date = extract_date_from_history(history_messages_preview)
-        enriched_query = user_message_converted
+        enriched_query = enrich_date_query(user_message_converted)
+        
         if context_date and len(user_message_converted.split()) <= 3:  # Обогащаем только короткие запросы
-            enriched_query = f"{user_message_converted} {context_date}"
+            enriched_query = f"{enriched_query} {context_date}"
             print(f"DEBUG: Enriched query for embedding: '{enriched_query}' (original: '{user_message_converted}'")
 
         # Если включен режим Pure Prompt Mode - ПОЛНОСТЬЮ пропускаем RAG
