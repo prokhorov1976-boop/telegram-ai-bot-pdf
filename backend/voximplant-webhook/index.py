@@ -182,6 +182,19 @@ def handler(event: dict, context) -> dict:
                             print(f"[Voximplant] Transfer detected: forwarding to {admin_phone}")
                             response_text = response_text.replace('TRANSFER_CALL', '').strip()
                             
+                            # Сохраняем сообщения в БД ДО перевода
+                            cur.execute(f"""
+                                INSERT INTO {schema}.voice_messages
+                                (call_id, direction, text, created_at)
+                                VALUES ('{call_id}', 'incoming', '{speech_text.replace("'", "''")}', NOW())
+                            """)
+                            
+                            cur.execute(f"""
+                                INSERT INTO {schema}.voice_messages
+                                (call_id, direction, text, created_at)
+                                VALUES ('{call_id}', 'outgoing', '{response_text.replace("'", "''")}', NOW())
+                            """)
+                            conn.commit()
                             cur.close()
                             conn.close()
                             
