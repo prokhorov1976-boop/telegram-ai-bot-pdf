@@ -170,7 +170,7 @@ def handler(event: dict, context) -> dict:
                                 'X-Authorization': auth_token,
                                 'Content-Type': 'application/json'
                             },
-                            json={'documentId': doc_id},
+                            json={'documentId': doc_id, 'tenant_id': tenant_id},
                             timeout=300
                         )
                         
