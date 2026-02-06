@@ -46,17 +46,18 @@ export const useIndexActions = (params: UseIndexActionsParams): IndexActions => 
         return;
       }
       
-      const tenantInfo = await response.json();
-      if (tenantInfo) {
-        console.log(`[Index] Loaded tenant from backend: slug=${tenantSlug}, ID=${tenantInfo.tenant_id}, name=${tenantInfo.name}`);
-        setCurrentTenantId(tenantInfo.tenant_id);
+      const data = await response.json();
+      const tenantInfo = data.tenant || data; // Поддерживаем оба формата ответа
+      if (tenantInfo && tenantInfo.id) {
+        console.log(`[Index] Loaded tenant from backend: slug=${tenantSlug}, ID=${tenantInfo.id}, name=${tenantInfo.name}`);
+        setCurrentTenantId(tenantInfo.id);
         setCurrentTenantName(tenantInfo.name || '');
         
         if (isSuperAdmin()) {
           sessionStorage.setItem('superadmin_viewing_tenant', 'true');
-          sessionStorage.setItem('superadmin_viewing_tenant_id', tenantInfo.tenant_id.toString());
-          sessionStorage.setItem('superadmin_viewing_tariff_id', tenantInfo.tariff_id);
-          console.log('[Index] Super admin viewing tenant:', tenantInfo.tenant_id);
+          sessionStorage.setItem('superadmin_viewing_tenant_id', tenantInfo.id.toString());
+          sessionStorage.setItem('superadmin_viewing_tariff_id', tenantInfo.tariff_id || '');
+          console.log('[Index] Super admin viewing tenant:', tenantInfo.id);
         }
       }
     } catch (error) {
