@@ -137,18 +137,30 @@ def handler(event: dict, context) -> dict:
                 import requests
                 process_pdf_url = 'https://functions.poehali.dev/44b9c312-5377-4fa7-8b4c-522f4bbbf201'
                 
+                # Получаем токен из заголовков (поддерживаем разные варианты)
+                auth_token = (
+                    event.get('headers', {}).get('x-authorization') or
+                    event.get('headers', {}).get('X-Authorization') or
+                    event.get('headers', {}).get('authorization') or
+                    event.get('headers', {}).get('Authorization') or
+                    ''
+                )
+                print(f"[Reindex] Auth token present: {bool(auth_token)}, headers keys: {list(event.get('headers', {}).keys())}")
+                
                 success_count = 0
                 for doc_id in document_ids:
                     try:
                         response = requests.post(
                             process_pdf_url,
                             headers={
-                                'X-Authorization': event.get('headers', {}).get('X-Authorization', ''),
+                                'X-Authorization': auth_token,
                                 'Content-Type': 'application/json'
                             },
                             json={'documentId': doc_id},
                             timeout=300
                         )
+                        
+                        print(f"[Reindex] Document {doc_id}: status={response.status_code}, response={response.text[:200]}")
                         
                         if response.ok:
                             success_count += 1

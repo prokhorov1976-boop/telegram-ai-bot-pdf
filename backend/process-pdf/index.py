@@ -168,12 +168,65 @@ def handler(event: dict, context) -> dict:
         
         # Генерируем все эмбеддинги ДО транзакции (если есть API ключи)
         import time
+        import re
         print(f"🚀 STARTING EMBEDDING GENERATION for {len(chunks)} chunks...")
+        
+        # Функция для обогащения текста датами из периодов
+        def enrich_with_dates(text):
+            """Добавляет явные упоминания дат для периодов в формате DD.MM.YYYY-DD.MM.YYYY"""
+            # Паттерн для поиска периодов типа "01.03.2026-31.03.2026"
+            period_pattern = r'(\d{2})\.(\d{2})\.(\d{4})-(\d{2})\.(\d{2})\.(\d{4})'
+            matches = re.findall(period_pattern, text)
+            
+            if not matches:
+                return text
+            
+            enriched = text
+            month_names = {
+                '01': 'января', '02': 'февраля', '03': 'марта', '04': 'апреля',
+                '05': 'мая', '06': 'июня', '07': 'июля', '08': 'августа',
+                '09': 'сентября', '10': 'октября', '11': 'ноября', '12': 'декабря'
+            }
+            month_names_nom = {
+                '01': 'январь', '02': 'февраль', '03': 'март', '04': 'апрель',
+                '05': 'май', '06': 'июнь', '07': 'июль', '08': 'август',
+                '09': 'сентябрь', '10': 'октябрь', '11': 'ноябрь', '12': 'декабрь'
+            }
+            
+            for match in matches:
+                start_day, start_month, start_year, end_day, end_month, end_year = match
+                
+                # Генерируем список дат (каждый день в периоде)
+                dates_list = []
+                dates_list.append(f"{month_names_nom[start_month]} {start_year}")
+                
+                # Если период в пределах одного месяца — добавляем все даты
+                if start_month == end_month and start_year == end_year:
+                    for day in range(1, int(end_day) + 1):
+                        dates_list.append(f"{day} {month_names[start_month]}")
+                else:
+                    # Период через несколько месяцев
+                    dates_list.append(f"{month_names_nom[end_month]} {end_year}")
+                    # Добавляем пример дат из начала и конца
+                    for day in [1, 5, 10, 15, 20, 25, int(end_day)]:
+                        if day <= int(end_day):
+                            dates_list.append(f"{day} {month_names[end_month]}")
+                
+                # Добавляем обогащенный текст
+                dates_text = ", ".join(dates_list)
+                enriched += f"\n\nДаты в этом периоде: {dates_text}"
+                break  # Обрабатываем только первый период в chunk
+            
+            return enriched
+        
         chunk_embeddings = []
         for idx, chunk_text in enumerate(chunks):
+            # Обогащаем текст датами ПЕРЕД созданием embedding
+            embedding_text = enrich_with_dates(chunk_text)
             embedding_json = None
             try:
                 if embedding_provider == 'yandex' and yandex_api_key and yandex_folder_id:
+                    # Используем обогащенный текст для embedding
                     emb_response = requests.post(
                         'https://llm.api.cloud.yandex.net/foundationModels/v1/textEmbedding',
                         headers={
@@ -182,7 +235,7 @@ def handler(event: dict, context) -> dict:
                         },
                         json={
                             'modelUri': f'emb://{yandex_folder_id}/{embedding_doc_model}/latest',
-                            'text': chunk_text
+                            'text': embedding_text
                         },
                         timeout=30
                     )
@@ -222,7 +275,8 @@ def handler(event: dict, context) -> dict:
                 traceback.print_exc()
                 embedding_json = None
             
-            chunk_embeddings.append((chunk_text, embedding_json))
+            # Сохраняем ОРИГИНАЛЬНЫЙ chunk_text и обогащенный embedding_text отдельно
+            chunk_embeddings.append((chunk_text, embedding_text, embedding_json))
         
         print(f"✅ EMBEDDING GENERATION COMPLETE: {len(chunk_embeddings)} chunks processed")
 
@@ -235,18 +289,23 @@ def handler(event: dict, context) -> dict:
             print(f"🗑️ Deleted old chunks for document_id={document_id}")
             
             # Вставляем все новые чанки
-            for idx, (chunk_text, embedding_json) in enumerate(chunk_embeddings):
+            for idx, (chunk_text, enriched_text, embedding_json) in enumerate(chunk_embeddings):
+                # В document_chunks сохраняем оригинальный chunk_text
                 cur.execute("""
                     INSERT INTO t_p56134400_telegram_ai_bot_pdf.document_chunks 
                     (document_id, chunk_text, chunk_index, embedding_text)
                     VALUES (%s, %s, %s, %s)
                 """, (document_id, chunk_text, idx, embedding_json))
                 
+                # В tenant_chunks сохраняем:
+                # - chunk_text: оригинальный текст для показа пользователю
+                # - enriched_text: обогащенный текст с датами (используется для embedding)
+                # - embedding_text: JSON вектор (рассчитан на основе enriched_text)
                 cur.execute("""
                     INSERT INTO t_p56134400_telegram_ai_bot_pdf.tenant_chunks 
-                    (tenant_id, document_id, chunk_text, chunk_index, embedding_text)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (tenant_id, document_id, chunk_text, idx, embedding_json))
+                    (tenant_id, document_id, chunk_text, chunk_index, embedding_text, enriched_text)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (tenant_id, document_id, chunk_text, idx, embedding_json, enriched_text))
             
             print(f"📝 Inserted {len(chunk_embeddings)} chunks into database")
             
