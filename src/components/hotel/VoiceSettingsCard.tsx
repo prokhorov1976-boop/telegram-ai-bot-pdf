@@ -116,12 +116,27 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
       const response = await authenticatedFetch(`${VOICE_SETTINGS_URL}?tenant_id=${tenantId}`);
       if (response.ok) {
         const data = await response.json();
+        
+        // Валидация: проверяем, что модель соответствует провайдеру
+        const provider = data.voice_provider || 'openrouter';
+        let model = data.voice_model || 'gemini-2.0-flash';
+        
+        // Проверяем, существует ли такая модель для данного провайдера
+        const providerModels = AI_MODELS[provider as keyof typeof AI_MODELS] || [];
+        const modelExists = providerModels.some(m => m.value === model);
+        
+        // Если модель не подходит провайдеру - берём первую доступную
+        if (!modelExists && providerModels.length > 0) {
+          console.warn(`Model ${model} not found for provider ${provider}, using default ${providerModels[0].value}`);
+          model = providerModels[0].value;
+        }
+        
         setSettings({
           voximplant_enabled: data.voximplant_enabled || false,
           voximplant_greeting: data.voximplant_greeting || '',
           voice_system_prompt: data.voice_system_prompt || DEFAULT_VOICE_PROMPT,
-          voice_model: data.voice_model || 'gemini-2.0-flash',
-          voice_provider: data.voice_provider || 'openrouter',
+          voice_model: model,
+          voice_provider: provider,
           max_tokens: data.max_tokens || 500,
           call_transfer_enabled: data.call_transfer_enabled || false,
           admin_phone_number: data.admin_phone_number || ''

@@ -111,6 +111,26 @@ def handler(event: dict, context) -> dict:
             max_tokens = int(body.get('max_tokens', 500))
             call_transfer_enabled = body.get('call_transfer_enabled', False)
             admin_phone_number = body.get('admin_phone_number', '').replace("'", "''")
+            
+            # Валидация соответствия модели и провайдера
+            VALID_MODELS = {
+                'yandex': ['yandexgpt', 'yandexgpt-lite'],
+                'deepseek': ['deepseek-chat', 'deepseek-reasoner'],
+                'openai': ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1-preview', 'o1-mini'],
+                'openrouter': ['gemini-2.0-flash', 'llama-3.3-70b', 'deepseek-v3', 'deepseek-r1', 'qwen-2.5-72b', 
+                              'gemini-flash-1.5', 'gpt-4o-mini', 'claude-3-haiku', 'gemini-pro-1.5', 'gpt-4o', 'claude-3.5-sonnet'],
+                'proxyapi': ['gpt-4o-mini', 'claude-3.5-haiku', 'gpt-5', 'gpt-4o', 'claude-sonnet-4.5']
+            }
+            
+            # Проверяем валидность провайдера и модели
+            if voice_provider not in VALID_MODELS:
+                print(f"Invalid provider {voice_provider}, using openrouter")
+                voice_provider = 'openrouter'
+                voice_model = 'gemini-2.0-flash'
+            elif voice_model not in VALID_MODELS[voice_provider]:
+                print(f"Model {voice_model} not valid for provider {voice_provider}, using first available")
+                voice_model = VALID_MODELS[voice_provider][0]
+                print(f"Corrected to: provider={voice_provider}, model={voice_model}")
 
             cur.execute(f"""
                 UPDATE {schema}.tenants 
