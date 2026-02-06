@@ -24,6 +24,7 @@ const AiSettingsCard = ({ currentTenantId, isSuperAdmin = false }: AiSettingsCar
   const [configStatus, setConfigStatus] = useState<'not_set' | 'active' | 'error'>('not_set');
   const [hasYandexKeys, setHasYandexKeys] = useState(false);
   const [hasDeepseekKeys, setHasDeepseekKeys] = useState(false);
+  const [hasQwenKeys, setHasQwenKeys] = useState(false);
   const [hasOpenRouterKeys, setHasOpenRouterKeys] = useState(false);
   const [hasProxyApiKeys, setHasProxyApiKeys] = useState(false);
   const [checkingKeys, setCheckingKeys] = useState(true);
@@ -89,11 +90,13 @@ const AiSettingsCard = ({ currentTenantId, isSuperAdmin = false }: AiSettingsCar
         const yandexApi = data.keys.find((k: any) => k.provider === 'yandex' && k.key_name === 'api_key' && k.key_value && k.key_value.trim() !== '');
         const yandexFolder = data.keys.find((k: any) => k.provider === 'yandex' && k.key_name === 'folder_id' && k.key_value && k.key_value.trim() !== '');
         const deepseekApi = data.keys.find((k: any) => k.provider === 'deepseek' && k.key_name === 'api_key' && k.key_value && k.key_value.trim() !== '');
+        const qwenApi = data.keys.find((k: any) => k.provider === 'qwen' && k.key_name === 'api_key' && k.key_value && k.key_value.trim() !== '');
         const openrouterApi = data.keys.find((k: any) => k.provider === 'openrouter' && k.key_name === 'api_key' && k.key_value && k.key_value.trim() !== '');
         const proxyapiApi = data.keys.find((k: any) => k.provider === 'proxyapi' && k.key_name === 'api_key' && k.key_value && k.key_value.trim() !== '');
         
         setHasYandexKeys(!!(yandexApi && yandexFolder));
         setHasDeepseekKeys(!!deepseekApi);
+        setHasQwenKeys(!!qwenApi);
         setHasOpenRouterKeys(!!openrouterApi);
         setHasProxyApiKeys(!!proxyapiApi);
       }

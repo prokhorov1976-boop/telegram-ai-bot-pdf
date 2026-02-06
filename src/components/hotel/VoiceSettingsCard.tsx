@@ -28,24 +28,31 @@ interface VoiceSettings {
 
 const AI_MODELS = {
   yandex: [
-    { value: 'yandexgpt', label: 'YandexGPT' },
-    { value: 'yandexgpt-lite', label: 'YandexGPT Lite' }
+    { value: 'yandexgpt', label: 'YandexGPT', price: '₽1 вх / ₽2 вых (1K)' },
+    { value: 'yandexgpt-lite', label: 'YandexGPT Lite', price: '₽0.12 вх / ₽0.24 вых (1K)' }
   ],
   deepseek: [
-    { value: 'deepseek-chat', label: 'DeepSeek Chat' },
-    { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner' }
+    { value: 'deepseek-chat', label: 'DeepSeek V3', price: '$0.14 вх / $0.28 вых (1M)' },
+    { value: 'deepseek-reasoner', label: 'DeepSeek R1', price: '$0.55 вх / $2.19 вых (1M)' }
   ],
   openrouter: [
-    { value: 'gemini-2.0-flash', label: '🚀 Gemini 2.0 Flash (быстрый, бесплатный)' },
-    { value: 'llama-3.3-70b', label: 'Llama 3.3 70B (бесплатный)' },
-    { value: 'deepseek-v3', label: 'DeepSeek V3 (бесплатный)' },
-    { value: 'gemini-flash-1.5', label: 'Gemini Flash 1.5' },
-    { value: 'gpt-4o', label: 'GPT-4o' }
+    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', price: 'Бесплатно (1M контекст)' },
+    { value: 'llama-3.3-70b', label: 'Llama 3.3 70B', price: 'Бесплатно' },
+    { value: 'deepseek-v3', label: 'DeepSeek V3', price: 'Бесплатно' },
+    { value: 'deepseek-r1', label: 'DeepSeek R1', price: 'Бесплатно (рассуждения)' },
+    { value: 'gemini-flash-1.5', label: 'Gemini Flash 1.5', price: '$0.075 вх / $0.30 вых (1M)' },
+    { value: 'gpt-4o', label: 'GPT-4o', price: '$2.50 вх / $10.00 вых (1M)' },
+    { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', price: '$3.00 вх / $15.00 вых (1M)' }
   ],
   proxyapi: [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-    { value: 'claude-3-haiku', label: 'Claude 3 Haiku' },
-    { value: 'gpt-4o', label: 'GPT-4o' }
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '₽3 вх / ₽3 вых (1M)' },
+    { value: 'claude-3-haiku', label: 'Claude 3 Haiku', price: '₽50 вх / ₽150 вых (1M)' },
+    { value: 'gpt-4o', label: 'GPT-4o', price: '₽75 вх / ₽300 вых (1M)' }
+  ],
+  qwen: [
+    { value: 'qwen-turbo', label: 'Qwen Turbo', price: '¥0.3 вх / ¥0.6 вых (1M)' },
+    { value: 'qwen-plus', label: 'Qwen Plus', price: '¥0.8 вх / ¥2.0 вых (1M)' },
+    { value: 'qwen-max', label: 'Qwen Max', price: '¥20 вх / ¥60 вых (1M)' }
   ]
 };
 
@@ -292,6 +299,7 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
                   <SelectItem value="openrouter">OpenRouter (рекомендуется)</SelectItem>
                   <SelectItem value="yandex">Yandex</SelectItem>
                   <SelectItem value="deepseek">DeepSeek</SelectItem>
+                  <SelectItem value="qwen">Qwen (прямой)</SelectItem>
                   <SelectItem value="proxyapi">ProxyAPI</SelectItem>
                 </SelectContent>
               </Select>
@@ -311,7 +319,10 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
                 <SelectContent>
                   {AI_MODELS[settings.voice_provider as keyof typeof AI_MODELS]?.map(model => (
                     <SelectItem key={model.value} value={model.value}>
-                      {model.label}
+                      <div className="flex flex-col">
+                        <span className="font-medium">{model.label}</span>
+                        <span className="text-xs text-muted-foreground">{model.price}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

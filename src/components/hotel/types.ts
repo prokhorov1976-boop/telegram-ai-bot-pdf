@@ -72,6 +72,7 @@ export interface AiModelSettings {
 export const AI_PROVIDERS = [
   { value: 'yandex', label: 'Yandex' },
   { value: 'deepseek', label: 'DeepSeek (прямой)' },
+  { value: 'qwen', label: 'Qwen (прямой)' },
   { value: 'openrouter', label: 'OpenRouter' },
   { value: 'proxyapi', label: 'ProxyAPI (рубли)' }
 ] as const;
@@ -126,6 +127,11 @@ export const AI_MODELS_BY_PROVIDER: Record<string, ModelOption[]> = {
     { value: 'o1-mini', label: 'OpenAI o1-mini', apiModel: 'o1-mini', price: '₽90 вх / ₽360 вых (1M)', category: 'Топовые' },
     { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', apiModel: 'claude-3-5-sonnet-20241022', price: '₽90 вх / ₽450 вых (1M)', category: 'Топовые' },
     { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', apiModel: 'gpt-4-turbo', price: '₽300 вх / ₽900 вых (1M)', category: 'Топовые' }
+  ],
+  qwen: [
+    { value: 'qwen-turbo', label: 'Qwen Turbo', apiModel: 'qwen-turbo', price: '¥0.3 вх / ¥0.6 вых (1M)', category: 'Дешевые' },
+    { value: 'qwen-plus', label: 'Qwen Plus', apiModel: 'qwen-plus', price: '¥0.8 вх / ¥2.0 вых (1M)', category: 'Стандартные' },
+    { value: 'qwen-max', label: 'Qwen Max', apiModel: 'qwen-max', price: '¥20 вх / ¥60 вых (1M)', category: 'Топовые' }
   ]
 };
 
