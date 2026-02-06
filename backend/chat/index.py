@@ -52,12 +52,13 @@ def parse_proxy(proxy_string: str):
 
 
 def get_proxy_settings(cur, tenant_id: int) -> dict:
-    """Загружает настройки прокси для DeepSeek, OpenRouter и ProxyAPI"""
+    """Загружает настройки прокси для DeepSeek, OpenRouter, ProxyAPI и OpenAI"""
     cur.execute("""
         SELECT 
             use_proxy_deepseek, proxy_deepseek,
             use_proxy_openrouter, proxy_openrouter,
-            use_proxy_proxyapi, proxy_proxyapi
+            use_proxy_proxyapi, proxy_proxyapi,
+            use_proxy_openai, proxy_openai
         FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings
         WHERE tenant_id = %s
     """, (tenant_id,))
@@ -78,6 +79,10 @@ def get_proxy_settings(cur, tenant_id: int) -> dict:
         'proxyapi': {
             'enabled': row[4] or False,
             'proxy': parse_proxy(row[5]) if row[4] and row[5] else None
+        },
+        'openai': {
+            'enabled': row[6] or False,
+            'proxy': parse_proxy(row[7]) if row[6] and row[7] else None
         }
     }
 
@@ -96,6 +101,14 @@ def get_provider_and_api_model(frontend_model: str, frontend_provider: str) -> t
         'deepseek': {
             'deepseek-chat': 'deepseek-chat',
             'deepseek-reasoner': 'deepseek-reasoner'
+        },
+        'openai': {
+            'gpt-4o-mini': 'gpt-4o-mini-2024-07-18',
+            'gpt-4o': 'gpt-4o-2024-11-20',
+            'gpt-4-turbo': 'gpt-4-turbo-2024-04-09',
+            'gpt-3.5-turbo': 'gpt-3.5-turbo-0125',
+            'o1-preview': 'o1-preview-2024-09-12',
+            'o1-mini': 'o1-mini-2024-09-12'
         },
         'openrouter': {
             # Бесплатные
