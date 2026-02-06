@@ -157,6 +157,22 @@ def handler(event: dict, context) -> dict:
             print(f'Error copying tenant_api_keys: {e}')
             copied_settings['tenant_api_keys_yandex'] = 'error'
         
+        # 8. Копируем tenant_settings.ai_settings (JSONB с промптами и настройками AI)
+        try:
+            cur.execute(f"""
+                UPDATE {schema}.tenant_settings 
+                SET ai_settings = (
+                    SELECT ai_settings 
+                    FROM {schema}.tenant_settings 
+                    WHERE tenant_id = 1
+                )
+                WHERE tenant_id = %s
+            """, (tenant_id,))
+            copied_settings['tenant_settings_ai_settings'] = 'copied' if cur.rowcount > 0 else 'no_change'
+        except Exception as e:
+            print(f'Error copying tenant_settings.ai_settings: {e}')
+            copied_settings['tenant_settings_ai_settings'] = 'error'
+        
         conn.commit()
         cur.close()
         conn.close()
