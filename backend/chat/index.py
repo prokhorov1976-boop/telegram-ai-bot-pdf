@@ -112,10 +112,6 @@ def get_provider_and_api_model(frontend_model: str, frontend_provider: str) -> t
             'deepseek-chat': 'deepseek/deepseek-chat',
             'gpt-4o-mini': 'openai/gpt-4o-mini',
             'claude-3-haiku': 'anthropic/claude-3-haiku',
-            'qwen-2.5-7b': 'qwen/qwen2.5-7b-instruct',
-            'qwen-2.5-14b': 'qwen/qwen2.5-14b-instruct',
-            'qwen-2.5-32b': 'qwen/qwen2.5-32b-instruct',
-            'qwen-3-72b': 'qwen/qwen3-72b-instruct',
             'llama-3.1-70b': 'meta-llama/llama-3.1-70b-instruct',
             # Топовые платные
             'gemini-pro-1.5': 'google/gemini-pro-1.5',
