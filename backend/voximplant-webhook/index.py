@@ -104,61 +104,100 @@ def handler(event: dict, context) -> dict:
             if not speech_text:
                 response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
             else:
-                chat_url = CHAT_FUNCTION_URL
-                request_payload = {
-                    'tenantSlug': tenant_slug,
-                    'sessionId': f"voice_{call_id}",
-                    'message': speech_text,
-                    'channel': 'voice'
-                }
-                print(f"[Voximplant] Отправка в AI: url={chat_url}, payload={request_payload}")
-                
-                try:
-                    ai_response = requests.post(
-                        chat_url,
-                        json=request_payload,
-                        headers={'Content-Type': 'application/json'},
-                        timeout=30
-                    )
+                # КРИТИЧНО: Проверка на триггер "бронирование" — сразу предлагаем сайт и оператора
+                import re
+                booking_keywords = r'(забронир|бронир|номер|заказ|свободн|цен)'
+                if re.search(booking_keywords, speech_text.lower()):
+                    print(f"[Voximplant] Booking trigger detected in: {speech_text}")
                     
-                    print(f"[Voximplant] AI response: status={ai_response.status_code}, body={ai_response.text[:500]}")
-                    
-                    if ai_response.status_code == 200:
-                        ai_data = ai_response.json()
-                        response_text = ai_data.get('message', 'Извините, не смог обработать запрос.')
-                        print(f"[Voximplant] AI answer (raw): {response_text}")
+                    if call_transfer_enabled and admin_phone:
+                        response_text = "Для бронирования рекомендую посетить наш сайт hotel-dinastiya.ru. Или могу соединить вас с администратором прямо сейчас. Соединяю?"
                         
-                        # Убираем технические метки из голосового ответа
-                        import re
-                        response_text = re.sub(r'^УТОЧНЕНИЕ\s*\n+', '', response_text, flags=re.IGNORECASE)
-                        response_text = re.sub(r'^ОТВЕТ\s*\n+', '', response_text, flags=re.IGNORECASE)
-                        response_text = response_text.strip()
-                        print(f"[Voximplant] AI answer (cleaned): {response_text}")
+                        # Сохраняем сообщения в БД
+                        cur.execute(f"""
+                            INSERT INTO {schema}.voice_messages
+                            (call_id, direction, text, created_at)
+                            VALUES ('{call_id}', 'incoming', '{speech_text.replace("'", "''")}', NOW())
+                        """)
                         
-                        # Проверка команды перевода звонка
-                        if call_transfer_enabled and admin_phone and 'TRANSFER_CALL' in response_text:
-                            print(f"[Voximplant] Transfer detected: forwarding to {admin_phone}")
-                            response_text = response_text.replace('TRANSFER_CALL', '').strip()
-                            
-                            cur.close()
-                            conn.close()
-                            
-                            return {
-                                'statusCode': 200,
-                                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                                'body': json.dumps({
-                                    'text': response_text,
-                                    'action': 'transfer',
-                                    'phone_number': admin_phone
-                                }),
-                                'isBase64Encoded': False
-                            }
+                        cur.execute(f"""
+                            INSERT INTO {schema}.voice_messages
+                            (call_id, direction, text, created_at)
+                            VALUES ('{call_id}', 'outgoing', '{response_text.replace("'", "''")}', NOW())
+                        """)
+                        conn.commit()
+                        cur.close()
+                        conn.close()
+                        
+                        return {
+                            'statusCode': 200,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({
+                                'text': response_text,
+                                'action': 'transfer',
+                                'phone_number': admin_phone
+                            }),
+                            'isBase64Encoded': False
+                        }
                     else:
-                        response_text = "Извините, произошла ошибка. Попробуйте позже."
-                        print(f"[Voximplant] AI error: status {ai_response.status_code}")
-                except Exception as e:
-                    response_text = "Извините, сервис временно недоступен."
-                    print(f"[Voximplant] Exception calling AI: {str(e)}")
+                        response_text = "Для бронирования рекомендую посетить наш сайт hotel-dinastiya.ru или позвоните нам напрямую."
+                
+                # Если не триггер бронирования — обычный AI-ответ
+                else:
+                    chat_url = CHAT_FUNCTION_URL
+                    request_payload = {
+                        'tenantSlug': tenant_slug,
+                        'sessionId': f"voice_{call_id}",
+                        'message': speech_text,
+                        'channel': 'voice'
+                    }
+                    print(f"[Voximplant] Отправка в AI: url={chat_url}, payload={request_payload}")
+                    
+                    try:
+                        ai_response = requests.post(
+                            chat_url,
+                            json=request_payload,
+                            headers={'Content-Type': 'application/json'},
+                            timeout=30
+                        )
+                        
+                        print(f"[Voximplant] AI response: status={ai_response.status_code}, body={ai_response.text[:500]}")
+                        
+                        if ai_response.status_code == 200:
+                            ai_data = ai_response.json()
+                            response_text = ai_data.get('message', 'Извините, не смог обработать запрос.')
+                            print(f"[Voximplant] AI answer (raw): {response_text}")
+                            
+                            # Убираем технические метки из голосового ответа
+                            response_text = re.sub(r'^УТОЧНЕНИЕ\s*\n+', '', response_text, flags=re.IGNORECASE)
+                            response_text = re.sub(r'^ОТВЕТ\s*\n+', '', response_text, flags=re.IGNORECASE)
+                            response_text = response_text.strip()
+                            print(f"[Voximplant] AI answer (cleaned): {response_text}")
+                            
+                            # Проверка команды перевода звонка
+                            if call_transfer_enabled and admin_phone and 'TRANSFER_CALL' in response_text:
+                                print(f"[Voximplant] Transfer detected: forwarding to {admin_phone}")
+                                response_text = response_text.replace('TRANSFER_CALL', '').strip()
+                                
+                                cur.close()
+                                conn.close()
+                                
+                                return {
+                                    'statusCode': 200,
+                                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                                    'body': json.dumps({
+                                        'text': response_text,
+                                        'action': 'transfer',
+                                        'phone_number': admin_phone
+                                    }),
+                                    'isBase64Encoded': False
+                                }
+                        else:
+                            response_text = "Извините, произошла ошибка. Попробуйте позже."
+                            print(f"[Voximplant] AI error: status {ai_response.status_code}")
+                    except Exception as e:
+                        response_text = "Извините, сервис временно недоступен."
+                        print(f"[Voximplant] Exception calling AI: {str(e)}")
 
                 # Сохраняем сообщения в БД
                 cur.execute(f"""
