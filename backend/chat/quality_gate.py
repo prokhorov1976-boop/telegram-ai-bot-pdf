@@ -218,9 +218,39 @@ def quality_gate(user_text: str, context: str, sims: List[float], tenant_overrid
     print(f"✅ QUALITY GATE: PASS - {q_type}/{lang}")
     return True, f"ok:{q_type}:{lang}", debug_info
 
-def compose_system(system_template: str, context: str, context_ok: bool) -> str:
+def compose_system(system_template: str, context: str, context_ok: bool, channel: str = 'web', is_first_message: bool = True) -> str:
+    """
+    Формирует финальный system prompt с учётом канала и позиции в диалоге.
+    
+    Для голосовых звонков (channel='voice'):
+    - is_first_message=True: оставляет приветствие как есть
+    - is_first_message=False: убирает фразы-приветствия из промпта
+    """
     final_context = context if (context_ok and context) else "Документы пока не загружены"
-    return f"""{system_template}
+    
+    # Для голосовых звонков: убираем приветствие из промпта после первого сообщения
+    prompt = system_template
+    if channel == 'voice' and not is_first_message:
+        # Убираем типичные фразы приветствия из промпта
+        greeting_phrases = [
+            r'здравствуйте[^.!?]*[.!?]',
+            r'добрый день[^.!?]*[.!?]',
+            r'слушаю вас[^.!?]*[.!?]',
+            r'чем могу помочь\??',
+            r'консьерж[^.!?]*слушает',
+            r'это консьерж[^.!?]*[.!?]',
+            r'отель [^,]+, консьерж[^.!?]*[.!?]'
+        ]
+        
+        import re
+        for phrase in greeting_phrases:
+            prompt = re.sub(phrase, '', prompt, flags=re.IGNORECASE)
+        
+        # Убираем множественные пробелы/переносы
+        prompt = re.sub(r'\n\s*\n+', '\n\n', prompt)
+        prompt = prompt.strip()
+    
+    return f"""{prompt}
 
 Доступная информация из документов:
 {final_context}"""

@@ -590,8 +590,20 @@ def handler(event: dict, context) -> dict:
         ))
         conn.commit()
         
+        # Проверяем, первое ли это сообщение в голосовом диалоге
+        is_first_message = True
+        if channel == 'voice':
+            # Для голосовых звонков проверяем историю ДО добавления текущего сообщения
+            cur.execute("""
+                SELECT COUNT(*) FROM t_p56134400_telegram_ai_bot_pdf.chat_messages
+                WHERE session_id = %s AND tenant_id = %s
+            """, (session_id, tenant_id))
+            msg_count = cur.fetchone()[0]
+            is_first_message = (msg_count == 0)
+            print(f"🎙️ VOICE: is_first_message={is_first_message}, message_count={msg_count}")
+        
         # Используем ранее загруженную историю (history_messages_preview)
-        system_prompt = compose_system(system_prompt_template, context_str, context_ok)
+        system_prompt = compose_system(system_prompt_template, context_str, context_ok, channel=channel, is_first_message=is_first_message)
         
         # Если quality gate не прошёл - НЕ используем историю чата
         # Это предотвращает использование информации из удалённых документов
