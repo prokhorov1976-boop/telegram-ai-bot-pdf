@@ -107,11 +107,15 @@ def get_provider_and_api_model(frontend_model: str, frontend_provider: str) -> t
             'mistral-small': 'mistralai/mistral-small-3.1-24b-instruct:free',
             'llama-3.1-405b': 'meta-llama/llama-3.1-405b-instruct:free',
             'olmo-3-32b': 'allenai/olmo-3.1-32b-think:free',
-            # Дешевые платные
+            # Дешевые платные (быстрые для голоса)
             'gemini-flash-1.5': 'google/gemini-flash-1.5',
             'deepseek-chat': 'deepseek/deepseek-chat',
             'gpt-4o-mini': 'openai/gpt-4o-mini',
             'claude-3-haiku': 'anthropic/claude-3-haiku',
+            'qwen-2.5-7b': 'qwen/qwen-2.5-7b-instruct',
+            'qwen-2.5-14b': 'qwen/qwen-2.5-14b-instruct',
+            'qwen-2.5-32b': 'qwen/qwen-2.5-32b-instruct',
+            'qwen-3-72b': 'qwen/qwen-3-72b-instruct',
             'llama-3.1-70b': 'meta-llama/llama-3.1-70b-instruct',
             # Топовые платные
             'gemini-pro-1.5': 'google/gemini-pro-1.5',
