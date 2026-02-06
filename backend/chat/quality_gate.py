@@ -231,7 +231,9 @@ def compose_system(system_template: str, context: str, context_ok: bool, channel
     # Для голосовых звонков: убираем приветствие из промпта после первого сообщения
     prompt = system_template
     if channel == 'voice' and not is_first_message:
-        # Убираем типичные фразы приветствия из промпта
+        import re
+        
+        # 1. Убираем фразы приветствия из промпта
         greeting_phrases = [
             r'здравствуйте[^.!?]*[.!?]',
             r'добрый день[^.!?]*[.!?]',
@@ -242,11 +244,19 @@ def compose_system(system_template: str, context: str, context_ok: bool, channel
             r'отель [^,]+, консьерж[^.!?]*[.!?]'
         ]
         
-        import re
         for phrase in greeting_phrases:
             prompt = re.sub(phrase, '', prompt, flags=re.IGNORECASE)
         
-        # Убираем множественные пробелы/переносы
+        # 2. Убираем ВЕСЬ блок с инструкцией про УТОЧНЕНИЕ (многострочный)
+        # Ищем от заголовка "УТОЧНЕНИЕ" до следующего заголовка в CAPS
+        prompt = re.sub(
+            r'УТОЧНЕНИЕ \(ТОЛЬКО КОГДА НУЖНО\):.*?(?=\n[А-ЯA-Z][А-ЯA-Z ]+:|\Z)',
+            '',
+            prompt,
+            flags=re.DOTALL | re.IGNORECASE
+        )
+        
+        # 3. Убираем множественные пробелы/переносы
         prompt = re.sub(r'\n\s*\n+', '\n\n', prompt)
         prompt = prompt.strip()
     
