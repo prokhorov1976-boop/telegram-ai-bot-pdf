@@ -35,6 +35,14 @@ const AI_MODELS = {
     { value: 'deepseek-chat', label: 'DeepSeek V3', price: '$0.14 вх / $0.28 вых (1M)' },
     { value: 'deepseek-reasoner', label: 'DeepSeek R1', price: '$0.55 вх / $2.19 вых (1M)' }
   ],
+  openai: [
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '$0.15 вх / $0.60 вых (1M)' },
+    { value: 'gpt-4o', label: 'GPT-4o', price: '$2.50 вх / $10.00 вых (1M)' },
+    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', price: '$10 вх / $30 вых (1M)' },
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', price: '$0.50 вх / $1.50 вых (1M)' },
+    { value: 'o1-preview', label: 'O1 Preview', price: '$15 вх / $60 вых (1M)' },
+    { value: 'o1-mini', label: 'O1 Mini', price: '$3 вх / $12 вых (1M)' }
+  ],
   openrouter: [
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', price: 'Бесплатно (1M контекст)' },
     { value: 'llama-3.3-70b', label: 'Llama 3.3 70B', price: 'Бесплатно' },
@@ -298,6 +306,7 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="openrouter">OpenRouter (рекомендуется)</SelectItem>
+                  <SelectItem value="openai">OpenAI напрямую (через прокси)</SelectItem>
                   <SelectItem value="yandex">Yandex</SelectItem>
                   <SelectItem value="deepseek">DeepSeek</SelectItem>
                   <SelectItem value="proxyapi">ProxyAPI</SelectItem>
@@ -348,11 +357,27 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
             </p>
           </div>
 
-          <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <Icon name="Info" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-blue-900">
-              <strong>Gemini 2.0 Flash</strong> — оптимальный выбор для голоса: быстрый (2-4 сек), бесплатный, качественный
-            </p>
+          <div className="space-y-2">
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Icon name="Info" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-blue-900">
+                <strong>Gemini 2.0 Flash</strong> — оптимальный выбор для голоса: быстрый (2-4 сек), бесплатный, качественный
+              </p>
+            </div>
+
+            {settings.voice_provider === 'openai' && (
+              <div className="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <Icon name="AlertTriangle" size={16} className="text-orange-600 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-orange-900 space-y-1">
+                  <p><strong>⚠️ Для OpenAI напрямую нужно:</strong></p>
+                  <ol className="list-decimal list-inside space-y-0.5 ml-2">
+                    <li>Настроить прокси в разделе "Настройки прокси"</li>
+                    <li>Добавить OpenAI API ключ в "API ключи"</li>
+                  </ol>
+                  <p className="mt-2">GPT-4o Mini через прокси: $0.15 вх / $0.60 вых (1M)</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
