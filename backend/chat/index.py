@@ -886,6 +886,49 @@ def handler(event: dict, context) -> dict:
                     request_id=session_id,
                     metadata={'provider': 'proxyapi'}
                 )
+        elif ai_provider == 'openai':
+            openai_key, error = get_tenant_api_key(tenant_id, 'openai', 'api_key')
+            if error:
+                return error
+            
+            # Setup proxy for OpenAI if enabled
+            openai_http_client = None
+            if proxy_settings.get('openai', {}).get('enabled') and proxy_settings['openai'].get('proxy'):
+                import httpx
+                openai_http_client = httpx.Client(proxies=proxy_settings['openai']['proxy'])
+                print(f"[chat] Using proxy for OpenAI: {list(proxy_settings['openai']['proxy'].values())[0][:50]}...")
+            
+            chat_client = OpenAI(
+                api_key=openai_key,
+                base_url="https://api.openai.com/v1",
+                http_client=openai_http_client
+            )
+            openai_messages = [{"role": "system", "content": system_prompt}]
+            for msg in history_to_use:
+                openai_messages.append({"role": msg["role"], "content": msg["content"]})
+            openai_messages.append({"role": "user", "content": user_message_converted})
+            
+            response = chat_client.chat.completions.create(
+                model=chat_api_model,
+                messages=openai_messages,
+                temperature=ai_temperature,
+                top_p=ai_top_p,
+                frequency_penalty=ai_frequency_penalty,
+                presence_penalty=ai_presence_penalty,
+                max_tokens=ai_max_tokens
+            )
+            assistant_message = response.choices[0].message.content
+            
+            # Логируем использование токенов
+            if hasattr(response, 'usage') and response.usage:
+                log_token_usage(
+                    tenant_id=tenant_id,
+                    operation_type='gpt_response',
+                    model=chat_api_model,
+                    tokens_used=response.usage.total_tokens,
+                    request_id=session_id,
+                    metadata={'provider': 'openai'}
+                )
         else:
             return {
                 'statusCode': 400,
