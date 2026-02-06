@@ -417,8 +417,16 @@ def handler(event: dict, context) -> dict:
                     else:
                         year = current_year
                     
-                    # Добавляем формат "Период: 01.03.2026-31.03.2026" для лучшего поиска
-                    enriched = f"{text} Период 01.{month_num:02d}.{year}"
+                    # Формат ТОЧНО как в документах: "Период: 01.03.2026-31.03.2026"
+                    # Определяем последний день месяца
+                    import calendar
+                    last_day = calendar.monthrange(year, month_num)[1]
+                    period_str = f"Период: 01.{month_num:02d}.{year}-{last_day:02d}.{month_num:02d}.{year}"
+                    
+                    # Добавляем также дату в формате "12.03.2026" для лучшего матчинга
+                    date_str = f"{day_str}.{month_num:02d}.{year}"
+                    
+                    enriched = f"{text} {period_str} {date_str}"
                     print(f"DEBUG: Enriched date query: '{text}' → '{enriched}'")
                     return enriched
             
