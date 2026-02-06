@@ -21,14 +21,21 @@ def get_tenant_api_key(tenant_id: int, provider: str, key_name: str) -> tuple[st
         
         print(f"🔑 DEBUG get_tenant_api_key: tenant_id={tenant_id}, provider={provider}, key_name={key_name}")
         
-        cur.execute("""
+        # CRITICAL: Simple Query Protocol ONLY - no %s placeholders
+        # Escape strings by doubling single quotes
+        safe_provider = provider.replace("'", "''")
+        safe_key_name = key_name.replace("'", "''")
+        
+        query = f"""
             SELECT key_value
             FROM t_p56134400_telegram_ai_bot_pdf.tenant_api_keys
-            WHERE tenant_id = %s 
-              AND provider = %s 
-              AND key_name = %s 
+            WHERE tenant_id = {tenant_id}
+              AND provider = '{safe_provider}'
+              AND key_name = '{safe_key_name}'
               AND is_active = true
-        """, (tenant_id, provider, key_name))
+        """
+        print(f"🔍 DEBUG SQL: {query}")
+        cur.execute(query)
         
         row = cur.fetchone()
         

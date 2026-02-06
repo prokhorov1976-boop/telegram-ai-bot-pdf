@@ -891,7 +891,7 @@ def handler(event: dict, context) -> dict:
                     metadata={'provider': 'proxyapi'}
                 )
         elif ai_provider == 'openai':
-            openai_key, error = get_tenant_api_key(tenant_id, 'openai', 'api_key')
+            openai_key, error = get_tenant_api_key(tenant_id, 'openai', 'OPENAI_API_KEY')
             if error:
                 return error
             
