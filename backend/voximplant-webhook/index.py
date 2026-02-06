@@ -102,7 +102,49 @@ def handler(event: dict, context) -> dict:
             print(f"[Voximplant] speech_recognized: call_id={call_id}, text={speech_text}, tenant={tenant_slug}")
             
             if not speech_text:
-                response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
+                # Проверяем счётчик пустых распознаваний для этого звонка
+                cur.execute(f"""
+                    SELECT COUNT(*) as empty_count 
+                    FROM {schema}.voice_messages 
+                    WHERE call_id = '{call_id}' 
+                    AND direction = 'incoming' 
+                    AND (text = '' OR text IS NULL)
+                """)
+                empty_count = cur.fetchone()['empty_count']
+                print(f"[Voximplant] Empty recognition count: {empty_count}")
+                
+                if empty_count >= 2:
+                    # После 2-3 пустых ответов — предлагаем соединение
+                    response_text = "Минутку, соединю с администратором. Оставайтесь на линии."
+                    
+                    # Если включен перевод — добавляем действие transfer
+                    if call_transfer_enabled and admin_phone:
+                        cur.execute(f"""
+                            INSERT INTO {schema}.voice_messages
+                            (call_id, direction, text, created_at)
+                            VALUES ('{call_id}', 'incoming', '', NOW())
+                        """)
+                        cur.execute(f"""
+                            INSERT INTO {schema}.voice_messages
+                            (call_id, direction, text, created_at)
+                            VALUES ('{call_id}', 'outgoing', '{response_text.replace("'", "''")}', NOW())
+                        """)
+                        conn.commit()
+                        cur.close()
+                        conn.close()
+                        
+                        return {
+                            'statusCode': 200,
+                            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                            'body': json.dumps({
+                                'text': response_text,
+                                'action': 'transfer',
+                                'phone_number': admin_phone
+                            }),
+                            'isBase64Encoded': False
+                        }
+                else:
+                    response_text = "Извините, я вас не расслышал. Повторите, пожалуйста."
             else:
                 chat_url = CHAT_FUNCTION_URL
                 request_payload = {
