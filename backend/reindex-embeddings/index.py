@@ -137,12 +137,24 @@ def handler(event: dict, context) -> dict:
                     WHERE tenant_id = %s
                 """, (total_docs, f"{embedding_provider}:{embedding_doc_model}", tenant_id))
 
+                # Получаем текущий прогресс
+                cur.execute("""
+                    SELECT revectorization_progress FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings
+                    WHERE tenant_id = %s
+                """, (tenant_id,))
+                progress_row = cur.fetchone()
+                current_progress = progress_row[0] if progress_row and progress_row[0] else 0
+                
                 cur.execute("""
                     SELECT id FROM t_p56134400_telegram_ai_bot_pdf.tenant_documents
                     WHERE tenant_id = %s AND status = 'ready'
                     ORDER BY id
                 """, (tenant_id,))
-                document_ids = [row[0] for row in cur.fetchall()]
+                all_document_ids = [row[0] for row in cur.fetchall()]
+                
+                # Пропускаем уже обработанные документы
+                document_ids = all_document_ids[current_progress:]
+                print(f"[Reindex] Total docs: {len(all_document_ids)}, already processed: {current_progress}, remaining: {len(document_ids)}")
 
                 conn.commit()
                 cur.close()
@@ -183,14 +195,14 @@ def handler(event: dict, context) -> dict:
                         if response.ok:
                             success_count += 1
                         
-                        # Обновляем прогресс после каждого документа
+                        # Обновляем прогресс после каждого документа (текущий прогресс + успешные в этом batch)
                         conn = psycopg2.connect(os.environ['DATABASE_URL'])
                         cur = conn.cursor()
                         cur.execute("""
                             UPDATE t_p56134400_telegram_ai_bot_pdf.tenant_settings
                             SET revectorization_progress = %s
                             WHERE tenant_id = %s
-                        """, (success_count, tenant_id))
+                        """, (current_progress + success_count, tenant_id))
                         conn.commit()
                         cur.close()
                         conn.close()
@@ -208,16 +220,23 @@ def handler(event: dict, context) -> dict:
 
                 conn = psycopg2.connect(os.environ['DATABASE_URL'])
                 cur = conn.cursor()
+                
+                # Проверяем, остались ли ещё документы
+                final_progress = current_progress + success_count
+                is_completed = final_progress >= len(all_document_ids)
+                
                 cur.execute("""
                     UPDATE t_p56134400_telegram_ai_bot_pdf.tenant_settings
                     SET 
-                        revectorization_status = 'completed',
+                        revectorization_status = %s,
                         revectorization_progress = %s
                     WHERE tenant_id = %s
-                """, (success_count, tenant_id))
+                """, ('completed' if is_completed else 'in_progress', final_progress, tenant_id))
                 conn.commit()
                 cur.close()
                 conn.close()
+                
+                print(f"[Reindex] Batch complete: processed {success_count}, total progress: {final_progress}/{len(all_document_ids)}, status: {'completed' if is_completed else 'in_progress'}")
 
                 return {
                     'statusCode': 200,
