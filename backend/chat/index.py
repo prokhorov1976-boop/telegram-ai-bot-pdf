@@ -97,11 +97,6 @@ def get_provider_and_api_model(frontend_model: str, frontend_provider: str) -> t
             'deepseek-chat': 'deepseek-chat',
             'deepseek-reasoner': 'deepseek-reasoner'
         },
-        'qwen': {
-            'qwen-turbo': 'qwen-turbo',
-            'qwen-plus': 'qwen-plus',
-            'qwen-max': 'qwen-max'
-        },
         'openrouter': {
             # Бесплатные
             'gemini-2.0-flash': 'google/gemini-2.0-flash-exp:free',
@@ -789,39 +784,6 @@ def handler(event: dict, context) -> dict:
                     tokens_used=response.usage.total_tokens,
                     request_id=session_id,
                     metadata={'provider': 'deepseek'}
-                )
-        elif ai_provider == 'qwen':
-            qwen_key, error = get_tenant_api_key(tenant_id, 'qwen', 'api_key')
-            if error:
-                return error
-            
-            chat_client = OpenAI(
-                api_key=qwen_key,
-                base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
-            )
-            qwen_messages = [{"role": "system", "content": system_prompt}]
-            for msg in history_to_use:
-                qwen_messages.append({"role": msg["role"], "content": msg["content"]})
-            qwen_messages.append({"role": "user", "content": user_message_converted})
-            
-            response = chat_client.chat.completions.create(
-                model=chat_api_model,
-                messages=qwen_messages,
-                temperature=ai_temperature,
-                top_p=ai_top_p,
-                max_tokens=ai_max_tokens
-            )
-            assistant_message = response.choices[0].message.content
-            
-            # Логируем использование токенов
-            if hasattr(response, 'usage') and response.usage:
-                log_token_usage(
-                    tenant_id=tenant_id,
-                    operation_type='gpt_response',
-                    model=chat_api_model,
-                    tokens_used=response.usage.total_tokens,
-                    request_id=session_id,
-                    metadata={'provider': 'qwen'}
                 )
         elif ai_provider == 'proxyapi':
             proxyapi_key, error = get_tenant_api_key(tenant_id, 'proxyapi', 'api_key')

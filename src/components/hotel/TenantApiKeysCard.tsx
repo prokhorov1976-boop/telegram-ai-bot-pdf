@@ -26,8 +26,6 @@ const TenantApiKeysCard = ({ tenantId, tenantName, fz152Enabled = false }: Tenan
     setGoogleSpeechApiKey,
     deepseekApiKey,
     setDeepseekApiKey,
-    qwenApiKey,
-    setQwenApiKey,
     openrouterApiKey,
     setOpenrouterApiKey,
     proxyapiApiKey,
@@ -43,7 +41,6 @@ const TenantApiKeysCard = ({ tenantId, tenantName, fz152Enabled = false }: Tenan
     openaiApiKey.startsWith('***') || 
     googleSpeechApiKey.startsWith('***') || 
     deepseekApiKey.startsWith('***') || 
-    qwenApiKey.startsWith('***') || 
     openrouterApiKey.startsWith('***') || 
     proxyapiApiKey.startsWith('***');
 
@@ -258,50 +255,6 @@ const TenantApiKeysCard = ({ tenantId, tenantName, fz152Enabled = false }: Tenan
                 onSave={() => handleSaveKey('openrouter', 'api_key', openrouterApiKey, 'openrouter_api')}
                 isSaving={savingKey === 'openrouter_api'}
                 placeholder="sk-or-... (введите новый ключ)"
-                type="password"
-                maskKey={maskKey}
-              />
-            </ApiKeySection>
-
-            <ApiKeySection
-              icon="Info"
-              iconColor="text-red-600"
-              bgColor="bg-red-50"
-              borderColor="border-red-200"
-              title="Qwen API (прямой доступ)"
-              description={
-                <div className="text-red-900">
-                  <p className="text-red-800 mb-2">
-                    <strong>Qwen Turbo:</strong> ¥0.3 вх / ¥0.6 вых (1M) — быстрая модель
-                  </p>
-                  <p className="text-red-800 mb-2">
-                    <strong>Qwen Plus:</strong> ¥0.8 вх / ¥2.0 вых (1M) — стандартная модель
-                  </p>
-                  <p className="text-red-800 mb-3">
-                    <strong>Qwen Max:</strong> ¥20 вх / ¥60 вых (1M) — топовая модель
-                  </p>
-                  <div className="border-t border-red-300 pt-3 mt-3">
-                    <p className="font-medium mb-2">Как получить ключ Qwen:</p>
-                    <ol className="list-decimal pl-4 space-y-1 text-red-800">
-                      <li>Перейдите на <a href="https://dashscope.console.aliyun.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-red-600">dashscope.console.aliyun.com</a></li>
-                      <li>Зарегистрируйтесь или войдите через Alibaba Cloud</li>
-                      <li>Пополните баланс (минимум ¥10)</li>
-                      <li>Перейдите в раздел API Keys</li>
-                      <li>Создайте новый ключ → скопируйте (начинается с sk-...)</li>
-                      <li>Вставьте ключ в поле ниже</li>
-                    </ol>
-                  </div>
-                </div>
-              }
-            >
-              <ApiKeyInput
-                id="qwen_api_key"
-                label="Qwen API Key"
-                value={qwenApiKey}
-                onChange={setQwenApiKey}
-                onSave={() => handleSaveKey('qwen', 'api_key', qwenApiKey, 'qwen_api')}
-                isSaving={savingKey === 'qwen_api'}
-                placeholder="sk-... (введите новый ключ)"
                 type="password"
                 maskKey={maskKey}
               />

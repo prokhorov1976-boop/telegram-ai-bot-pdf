@@ -6,7 +6,7 @@ import FUNC_URLS from '../../../../backend/func2url.json';
 const BACKEND_URL = FUNC_URLS['manage-api-keys'];
 
 interface ApiKey {
-  provider: 'yandex' | 'deepseek' | 'qwen' | 'openrouter' | 'proxyapi' | 'openai' | 'google';
+  provider: 'yandex' | 'deepseek' | 'openrouter' | 'proxyapi' | 'openai' | 'google';
   key_name: string;
   key_value: string;
   is_active: boolean;
@@ -24,7 +24,6 @@ export const useApiKeys = (tenantId: number) => {
   const [openaiApiKey, setOpenaiApiKey] = useState('');
   const [googleSpeechApiKey, setGoogleSpeechApiKey] = useState('');
   const [deepseekApiKey, setDeepseekApiKey] = useState('');
-  const [qwenApiKey, setQwenApiKey] = useState('');
   const [openrouterApiKey, setOpenrouterApiKey] = useState('');
   const [proxyapiApiKey, setProxyapiApiKey] = useState('');
 
@@ -47,7 +46,6 @@ export const useApiKeys = (tenantId: number) => {
         const openaiApi = data.keys.find((k: ApiKey) => k.provider === 'openai' && k.key_name === 'OPENAI_API_KEY');
         const googleSpeech = data.keys.find((k: ApiKey) => k.provider === 'google' && k.key_name === 'GOOGLE_SPEECH_API_KEY');
         const deepseekApi = data.keys.find((k: ApiKey) => k.provider === 'deepseek' && k.key_name === 'api_key');
-        const qwenApi = data.keys.find((k: ApiKey) => k.provider === 'qwen' && k.key_name === 'api_key');
         const openrouterApi = data.keys.find((k: ApiKey) => k.provider === 'openrouter' && k.key_name === 'api_key');
         const proxyapiApi = data.keys.find((k: ApiKey) => k.provider === 'proxyapi' && k.key_name === 'api_key');
         
@@ -57,7 +55,6 @@ export const useApiKeys = (tenantId: number) => {
           openai: !!openaiApi,
           googleSpeech: !!googleSpeech,
           deepseek: !!deepseekApi,
-          qwen: !!qwenApi,
           openrouter: !!openrouterApi,
           proxyapi: !!proxyapiApi
         });
@@ -68,7 +65,6 @@ export const useApiKeys = (tenantId: number) => {
         setOpenaiApiKey(openaiApi?.key_value || '');
         setGoogleSpeechApiKey(googleSpeech?.key_value || '');
         setDeepseekApiKey(deepseekApi?.key_value || '');
-        setQwenApiKey(qwenApi?.key_value || '');
         setOpenrouterApiKey(openrouterApi?.key_value || '');
         setProxyapiApiKey(proxyapiApi?.key_value || '');
       } else {
@@ -154,8 +150,6 @@ export const useApiKeys = (tenantId: number) => {
     setGoogleSpeechApiKey,
     deepseekApiKey,
     setDeepseekApiKey,
-    qwenApiKey,
-    setQwenApiKey,
     openrouterApiKey,
     setOpenrouterApiKey,
     proxyapiApiKey,

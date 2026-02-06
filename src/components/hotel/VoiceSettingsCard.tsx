@@ -41,8 +41,9 @@ const AI_MODELS = {
     { value: 'deepseek-v3', label: 'DeepSeek V3', price: 'Бесплатно' },
     { value: 'deepseek-r1', label: 'DeepSeek R1', price: 'Бесплатно (рассуждения)' },
     { value: 'qwen-2.5-72b', label: 'Qwen 2.5 72B', price: 'Бесплатно' },
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '$0.15 вх / $0.60 вых (1M)' },
     { value: 'gemini-flash-1.5', label: 'Gemini Flash 1.5', price: '$0.075 вх / $0.30 вых (1M)' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '$0.15 вх / $0.60 вых (1M)' },
+    { value: 'gemini-pro-1.5', label: 'Gemini Pro 1.5', price: '$1.25 вх / $5.00 вых (1M)' },
     { value: 'gpt-4o', label: 'GPT-4o', price: '$2.50 вх / $10.00 вых (1M)' },
     { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', price: '$3.00 вх / $15.00 вых (1M)' }
   ],
@@ -52,11 +53,6 @@ const AI_MODELS = {
     { value: 'gpt-5', label: 'GPT-5', price: '₽323 вх / ₽2577 вых (1M)' },
     { value: 'gpt-4o', label: 'GPT-4o', price: '₽645 вх / ₽2577 вых (1M)' },
     { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', price: '₽774 вх / ₽3866 вых (1M)' }
-  ],
-  qwen: [
-    { value: 'qwen-turbo', label: 'Qwen Turbo', price: '¥0.3 вх / ¥0.6 вых (1M)' },
-    { value: 'qwen-plus', label: 'Qwen Plus', price: '¥0.8 вх / ¥2.0 вых (1M)' },
-    { value: 'qwen-max', label: 'Qwen Max', price: '¥20 вх / ¥60 вых (1M)' }
   ]
 };
 
@@ -303,7 +299,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
                   <SelectItem value="openrouter">OpenRouter (рекомендуется)</SelectItem>
                   <SelectItem value="yandex">Yandex</SelectItem>
                   <SelectItem value="deepseek">DeepSeek</SelectItem>
-                  <SelectItem value="qwen">Qwen (прямой)</SelectItem>
                   <SelectItem value="proxyapi">ProxyAPI</SelectItem>
                 </SelectContent>
               </Select>
