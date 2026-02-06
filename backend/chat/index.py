@@ -35,10 +35,14 @@ def parse_proxy(proxy_string: str):
         return None
     
     try:
-        # Формат: ip:port@login:pass
+        # Формат в БД: ip:port@login:pass
+        # Нужный формат: http://login:pass@ip:port
         if '@' in proxy_string:
             ip_port, login_pass = proxy_string.split('@', 1)
+            # login_pass это "htHeTxF34:MjMfyEKT4"
+            # ip_port это "172.120.190.64:63478"
             proxy_url = f'http://{login_pass}@{ip_port}'
+            print(f'DEBUG parse_proxy: input="{proxy_string}" → output="{proxy_url}"')
         else:
             proxy_url = f'http://{proxy_string}'
         
