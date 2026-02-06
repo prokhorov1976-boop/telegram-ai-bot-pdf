@@ -690,7 +690,7 @@ def handler(event: dict, context) -> dict:
             
             if is_free_model:
                 try:
-                    working_model = get_working_free_model(chat_api_model, openrouter_key)
+                    working_model = get_working_free_model(chat_api_model)
                     print(f"✅ OpenRouter бесплатная модель доступна: {chat_api_model}")
                 except Exception as model_error:
                     return {
