@@ -634,6 +634,18 @@ def handler(event: dict, context) -> dict:
                 sims = []
                 gate_debug = {"error": str(emb_error)}
 
+        # Проверяем, первое ли это сообщение в голосовом диалоге (ДО добавления в БД!)
+        is_first_message = True
+        if channel == 'voice':
+            # Для голосовых звонков проверяем историю ДО добавления текущего сообщения
+            cur.execute("""
+                SELECT COUNT(*) FROM t_p56134400_telegram_ai_bot_pdf.chat_messages
+                WHERE session_id = %s AND tenant_id = %s
+            """, (session_id, tenant_id))
+            msg_count = cur.fetchone()[0]
+            is_first_message = (msg_count == 0)
+            print(f"🎙️ VOICE: is_first_message={is_first_message}, message_count_before_insert={msg_count}")
+
         cur.execute("""
             INSERT INTO t_p56134400_telegram_ai_bot_pdf.chat_messages (session_id, role, content, tenant_id)
             VALUES (%s, %s, %s, %s)
@@ -658,18 +670,6 @@ def handler(event: dict, context) -> dict:
             gate_debug.get('top_k_used')
         ))
         conn.commit()
-        
-        # Проверяем, первое ли это сообщение в голосовом диалоге
-        is_first_message = True
-        if channel == 'voice':
-            # Для голосовых звонков проверяем историю ДО добавления текущего сообщения
-            cur.execute("""
-                SELECT COUNT(*) FROM t_p56134400_telegram_ai_bot_pdf.chat_messages
-                WHERE session_id = %s AND tenant_id = %s
-            """, (session_id, tenant_id))
-            msg_count = cur.fetchone()[0]
-            is_first_message = (msg_count == 0)
-            print(f"🎙️ VOICE: is_first_message={is_first_message}, message_count={msg_count}")
         
         # Используем ранее загруженную историю (history_messages_preview)
         system_prompt = compose_system(system_prompt_template, context_str, context_ok, channel=channel, is_first_message=is_first_message)
