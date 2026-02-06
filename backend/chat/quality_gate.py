@@ -260,6 +260,13 @@ def compose_system(system_template: str, context: str, context_ok: bool, channel
         prompt = re.sub(r'\n\s*\n+', '\n\n', prompt)
         prompt = prompt.strip()
     
+    # Если в промпте есть плейсхолдер {rag_context_placeholder} — заменяем его
+    if '{rag_context_placeholder}' in prompt:
+        context_block = f"""Доступная информация из документов:
+{final_context}"""
+        return prompt.replace('{rag_context_placeholder}', context_block)
+    
+    # Иначе добавляем в конец (обратная совместимость)
     return f"""{prompt}
 
 Доступная информация из документов:
