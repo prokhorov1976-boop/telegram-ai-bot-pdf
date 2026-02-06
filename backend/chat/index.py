@@ -303,13 +303,19 @@ def handler(event: dict, context) -> dict:
             ai_presence_penalty = safe_float(settings.get('presence_penalty'), 0.0)
             ai_max_tokens = safe_int(settings.get('max_tokens'), default_max_tokens)
             
-            # Используем voice_system_prompt для голосовых звонков, если указан
+            # Приоритет выбора промпта для звонков: voice_system_prompt → system_prompt → default
+            # Для чата: system_prompt → default
             voice_system_prompt = settings.get('voice_system_prompt')
-            if channel == 'voice' and voice_system_prompt:
-                system_prompt_template = voice_system_prompt
-                print(f"DEBUG: Using voice_system_prompt for channel=voice: {voice_system_prompt[:100]}...")
+            chat_system_prompt = settings.get('system_prompt')
+            
+            if channel == 'voice':
+                # Для звонков: voice_system_prompt → fallback на chat system_prompt → fallback на default
+                system_prompt_template = voice_system_prompt or chat_system_prompt or default_prompt_from_db
+                print(f"🎙️ VOICE: Using {'voice_system_prompt' if voice_system_prompt else ('system_prompt' if chat_system_prompt else 'default_prompt')}")
             else:
-                system_prompt_template = settings.get('system_prompt') or default_prompt_from_db
+                # Для чата: system_prompt → fallback на default
+                system_prompt_template = chat_system_prompt or default_prompt_from_db
+                print(f"💬 CHAT: Using {'system_prompt' if chat_system_prompt else 'default_prompt'}")
 
         # Загружаем историю ДО эмбеддингов для обогащения запроса
         cur.execute("""
