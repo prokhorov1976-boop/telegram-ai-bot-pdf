@@ -24,7 +24,8 @@ def get_tenant_settings(tenant_id: int) -> Dict[str, Any]:
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("""
+            # CRITICAL: Simple Query Protocol ONLY - no %s placeholders
+            query = f"""
                 SELECT 
                     speech_recognition_enabled,
                     speech_recognition_provider,
@@ -34,8 +35,9 @@ def get_tenant_settings(tenant_id: int) -> Dict[str, Any]:
                     use_proxy_google,
                     proxy_google
                 FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings
-                WHERE tenant_id = %s
-            """, (tenant_id,))
+                WHERE tenant_id = {tenant_id}
+            """
+            cur.execute(query)
             row = cur.fetchone()
             
             if not row:
@@ -67,14 +69,20 @@ def get_api_key(tenant_id: int, provider: str, key_name: str) -> Optional[str]:
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("""
+            # CRITICAL: Simple Query Protocol ONLY - no %s placeholders
+            # Escape strings by doubling single quotes
+            safe_provider = provider.replace("'", "''")
+            safe_key_name = key_name.replace("'", "''")
+            
+            query = f"""
                 SELECT key_value
                 FROM t_p56134400_telegram_ai_bot_pdf.tenant_api_keys
-                WHERE tenant_id = %s 
-                  AND provider = %s 
-                  AND key_name = %s
+                WHERE tenant_id = {tenant_id}
+                  AND provider = '{safe_provider}'
+                  AND key_name = '{safe_key_name}'
                   AND is_active = true
-            """, (tenant_id, provider, key_name))
+            """
+            cur.execute(query)
             row = cur.fetchone()
             return row[0] if row else None
     finally:
@@ -284,23 +292,28 @@ def handler(event: dict, context) -> dict:
                 with conn.cursor() as cur:
                     provider = body.get('provider', 'yandex')
                     
-                    cur.execute("""
+                    # CRITICAL: Simple Query Protocol ONLY - no %s placeholders
+                    cur.execute(f"""
                         SELECT consent_enabled 
                         FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings 
-                        WHERE tenant_id = %s
-                    """, (tenant_id,))
+                        WHERE tenant_id = {tenant_id}
+                    """)
                     fz152_row = cur.fetchone()
                     fz152_enabled = fz152_row[0] if fz152_row else False
                     
                     if fz152_enabled and provider != 'yandex':
                         provider = 'yandex'
                     
-                    cur.execute("""
+                    # Escape strings for SQL
+                    safe_provider = provider.replace("'", "''")
+                    enabled_val = 'true' if body['enabled'] else 'false'
+                    
+                    cur.execute(f"""
                         UPDATE t_p56134400_telegram_ai_bot_pdf.tenant_settings 
-                        SET speech_recognition_enabled = %s,
-                            speech_recognition_provider = %s
-                        WHERE tenant_id = %s
-                    """, (body['enabled'], provider, tenant_id))
+                        SET speech_recognition_enabled = {enabled_val},
+                            speech_recognition_provider = '{safe_provider}'
+                        WHERE tenant_id = {tenant_id}
+                    """)
                     conn.commit()
             finally:
                 conn.close()
