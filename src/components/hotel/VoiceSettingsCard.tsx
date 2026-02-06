@@ -40,14 +40,18 @@ const AI_MODELS = {
     { value: 'llama-3.3-70b', label: 'Llama 3.3 70B', price: 'Бесплатно' },
     { value: 'deepseek-v3', label: 'DeepSeek V3', price: 'Бесплатно' },
     { value: 'deepseek-r1', label: 'DeepSeek R1', price: 'Бесплатно (рассуждения)' },
+    { value: 'qwen-2.5-72b', label: 'Qwen 2.5 72B', price: 'Бесплатно' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '$0.15 вх / $0.60 вых (1M)' },
     { value: 'gemini-flash-1.5', label: 'Gemini Flash 1.5', price: '$0.075 вх / $0.30 вых (1M)' },
     { value: 'gpt-4o', label: 'GPT-4o', price: '$2.50 вх / $10.00 вых (1M)' },
     { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', price: '$3.00 вх / $15.00 вых (1M)' }
   ],
   proxyapi: [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '₽3 вх / ₽3 вых (1M)' },
-    { value: 'claude-3-haiku', label: 'Claude 3 Haiku', price: '₽50 вх / ₽150 вых (1M)' },
-    { value: 'gpt-4o', label: 'GPT-4o', price: '₽75 вх / ₽300 вых (1M)' }
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '₽39 вх / ₽155 вых (1M)' },
+    { value: 'claude-3.5-haiku', label: 'Claude 3.5 Haiku', price: '₽258 вх / ₽1289 вых (1M)' },
+    { value: 'gpt-5', label: 'GPT-5', price: '₽323 вх / ₽2577 вых (1M)' },
+    { value: 'gpt-4o', label: 'GPT-4o', price: '₽645 вх / ₽2577 вых (1M)' },
+    { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', price: '₽774 вх / ₽3866 вых (1M)' }
   ],
   qwen: [
     { value: 'qwen-turbo', label: 'Qwen Turbo', price: '¥0.3 вх / ¥0.6 вых (1M)' },

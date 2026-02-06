@@ -104,37 +104,37 @@ def get_provider_and_api_model(frontend_model: str, frontend_provider: str) -> t
         },
         'openrouter': {
             # Бесплатные
-            'llama-3.3-70b': 'meta-llama/llama-3.3-70b-instruct:free',
             'gemini-2.0-flash': 'google/gemini-2.0-flash-exp:free',
+            'llama-3.3-70b': 'meta-llama/llama-3.3-70b-instruct:free',
             'deepseek-v3': 'deepseek/deepseek-chat:free',
             'deepseek-r1': 'deepseek/deepseek-r1:free',
-            'llama-3.1-405b': 'meta-llama/llama-3.1-405b-instruct:free',
             'qwen-2.5-72b': 'qwen/qwen-2.5-72b-instruct:free',
             'mistral-small': 'mistralai/mistral-small-3.1-24b-instruct:free',
-            'phi-3-medium': 'microsoft/phi-3-medium-128k-instruct:free',
-            'llama-3.1-8b': 'meta-llama/llama-3.1-8b-instruct:free',
-            'gemma-2-9b': 'google/gemma-2-9b-it:free',
-            'qwen-2.5-7b': 'qwen/qwen-2.5-7b-instruct:free',
+            'llama-3.1-405b': 'meta-llama/llama-3.1-405b-instruct:free',
+            'olmo-3-32b': 'allenai/olmo-3.1-32b-think:free',
             # Дешевые платные
             'gemini-flash-1.5': 'google/gemini-flash-1.5',
             'deepseek-chat': 'deepseek/deepseek-chat',
-            'mixtral-8x7b': 'mistralai/mixtral-8x7b-instruct',
+            'gpt-4o-mini': 'openai/gpt-4o-mini',
             'claude-3-haiku': 'anthropic/claude-3-haiku',
-            'gpt-3.5-turbo': 'openai/gpt-3.5-turbo',
             'llama-3.1-70b': 'meta-llama/llama-3.1-70b-instruct',
             # Топовые платные
             'gemini-pro-1.5': 'google/gemini-pro-1.5',
             'gpt-4o': 'openai/gpt-4o',
-            'claude-3.5-sonnet': 'anthropic/claude-3.5-sonnet'
+            'claude-3.5-sonnet': 'anthropic/claude-3.5-sonnet',
+            'claude-opus-4': 'anthropic/claude-opus-4-20250514'
         },
         'proxyapi': {
-            'gpt-4o-mini': 'gpt-4o-mini',
-            'gpt-3.5-turbo': 'gpt-3.5-turbo',
-            'claude-3-haiku': 'claude-3-haiku-20240307',
-            'gpt-4o': 'gpt-4o',
-            'o1-mini': 'o1-mini',
-            'claude-3.5-sonnet': 'claude-3-5-sonnet-20241022',
-            'gpt-4-turbo': 'gpt-4-turbo'
+            'gpt-4o-mini': 'gpt-4o-mini-2024-07-18',
+            'gpt-3.5-turbo': 'gpt-3.5-turbo-0125',
+            'claude-3.5-haiku': 'claude-3-5-haiku-20241022',
+            'o3-mini': 'o3-mini-2025-01-31',
+            'gpt-5': 'gpt-5-2025-08-07',
+            'o3': 'o3-2025-04-16',
+            'gpt-4o': 'gpt-4o-2024-11-20',
+            'claude-sonnet-4.5': 'claude-sonnet-4-5-20250929',
+            'o3-pro': 'o3-pro-2025-06-10',
+            'claude-opus-4': 'claude-opus-4-20250514'
         }
     }
     

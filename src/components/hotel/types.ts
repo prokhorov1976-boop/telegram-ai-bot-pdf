@@ -95,38 +95,38 @@ export const AI_MODELS_BY_PROVIDER: Record<string, ModelOption[]> = {
     { value: 'deepseek-reasoner', label: 'DeepSeek R1 (рассуждения)', apiModel: 'deepseek-reasoner', price: '$0.55 вх / $2.19 вых (1M)', category: 'Рассуждения' }
   ],
   openrouter: [
-    { value: 'llama-3.3-70b', label: 'Llama 3.3 70B', apiModel: 'meta-llama/llama-3.3-70b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
     { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', apiModel: 'google/gemini-2.0-flash-exp:free', price: 'Бесплатно (1M контекст)', category: 'Бесплатные' },
+    { value: 'llama-3.3-70b', label: 'Llama 3.3 70B', apiModel: 'meta-llama/llama-3.3-70b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
     { value: 'deepseek-v3', label: 'DeepSeek V3', apiModel: 'deepseek/deepseek-chat:free', price: 'Бесплатно', category: 'Бесплатные' },
     { value: 'deepseek-r1', label: 'DeepSeek R1', apiModel: 'deepseek/deepseek-r1:free', price: 'Бесплатно (рассуждения)', category: 'Бесплатные' },
-    { value: 'llama-3.1-405b', label: 'Llama 3.1 405B', apiModel: 'meta-llama/llama-3.1-405b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
     { value: 'qwen-2.5-72b', label: 'Qwen 2.5 72B', apiModel: 'qwen/qwen-2.5-72b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
-    { value: 'mistral-small', label: 'Mistral Small 3.1 24B', apiModel: 'mistralai/mistral-small-3.1-24b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
-    { value: 'phi-3-medium', label: 'Phi-3 Medium 128K', apiModel: 'microsoft/phi-3-medium-128k-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
-    { value: 'llama-3.1-8b', label: 'Llama 3.1 8B', apiModel: 'meta-llama/llama-3.1-8b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
-    { value: 'gemma-2-9b', label: 'Gemma 2 9B', apiModel: 'google/gemma-2-9b-it:free', price: 'Бесплатно', category: 'Бесплатные' },
-    { value: 'qwen-2.5-7b', label: 'Qwen 2.5 7B', apiModel: 'qwen/qwen-2.5-7b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
+    { value: 'mistral-small', label: 'Mistral Small 24B', apiModel: 'mistralai/mistral-small-3.1-24b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
+    { value: 'llama-3.1-405b', label: 'Llama 3.1 405B', apiModel: 'meta-llama/llama-3.1-405b-instruct:free', price: 'Бесплатно', category: 'Бесплатные' },
+    { value: 'olmo-3-32b', label: 'OLMo 3 32B Thinking', apiModel: 'allenai/olmo-3.1-32b-think:free', price: 'Бесплатно (рассуждения)', category: 'Бесплатные' },
     
     { value: 'gemini-flash-1.5', label: 'Gemini Flash 1.5', apiModel: 'google/gemini-flash-1.5', price: '$0.075 вх / $0.30 вых (1M)', category: 'Дешевые' },
     { value: 'deepseek-chat', label: 'DeepSeek Chat V3', apiModel: 'deepseek/deepseek-chat', price: '$0.14 вх / $0.28 вых (1M)', category: 'Дешевые' },
-    { value: 'mixtral-8x7b', label: 'Mixtral 8x7B', apiModel: 'mistralai/mixtral-8x7b-instruct', price: '$0.24 вх / $0.24 вых (1M)', category: 'Дешевые' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', apiModel: 'openai/gpt-4o-mini', price: '$0.15 вх / $0.60 вых (1M)', category: 'Дешевые' },
     { value: 'claude-3-haiku', label: 'Claude 3 Haiku', apiModel: 'anthropic/claude-3-haiku', price: '$0.25 вх / $1.25 вых (1M)', category: 'Дешевые' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', apiModel: 'openai/gpt-3.5-turbo', price: '$0.50 вх / $1.50 вых (1M)', category: 'Дешевые' },
     { value: 'llama-3.1-70b', label: 'Llama 3.1 70B', apiModel: 'meta-llama/llama-3.1-70b-instruct', price: '$0.52 вх / $0.75 вых (1M)', category: 'Дешевые' },
     
     { value: 'gemini-pro-1.5', label: 'Gemini Pro 1.5', apiModel: 'google/gemini-pro-1.5', price: '$1.25 вх / $5.00 вых (1M)', category: 'Топовые' },
     { value: 'gpt-4o', label: 'GPT-4o', apiModel: 'openai/gpt-4o', price: '$2.50 вх / $10.00 вых (1M)', category: 'Топовые' },
-    { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', apiModel: 'anthropic/claude-3.5-sonnet', price: '$3.00 вх / $15.00 вых (1M)', category: 'Топовые' }
+    { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', apiModel: 'anthropic/claude-3.5-sonnet', price: '$3.00 вх / $15.00 вых (1M)', category: 'Топовые' },
+    { value: 'claude-opus-4', label: 'Claude Opus 4', apiModel: 'anthropic/claude-opus-4-20250514', price: '$15 вх / $75 вых (1M)', category: 'Топовые' }
   ],
   proxyapi: [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', apiModel: 'gpt-4o-mini', price: '₽3 вх / ₽3 вых (1M)', category: 'Дешевые' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', apiModel: 'gpt-3.5-turbo', price: '₽15 вх / ₽30 вых (1M)', category: 'Дешевые' },
-    { value: 'claude-3-haiku', label: 'Claude 3 Haiku', apiModel: 'claude-3-haiku-20240307', price: '₽50 вх / ₽150 вых (1M)', category: 'Дешевые' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', apiModel: 'gpt-4o-mini-2024-07-18', price: '₽39 вх / ₽155 вых (1M)', category: 'Дешевые' },
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', apiModel: 'gpt-3.5-turbo-0125', price: '₽129 вх / ₽387 вых (1M)', category: 'Дешевые' },
+    { value: 'claude-3.5-haiku', label: 'Claude 3.5 Haiku', apiModel: 'claude-3-5-haiku-20241022', price: '₽258 вх / ₽1289 вых (1M)', category: 'Дешевые' },
+    { value: 'o3-mini', label: 'OpenAI o3-mini', apiModel: 'o3-mini-2025-01-31', price: '₽284 вх / ₽1134 вых (1M)', category: 'Дешевые' },
     
-    { value: 'gpt-4o', label: 'GPT-4o', apiModel: 'gpt-4o', price: '₽75 вх / ₽300 вых (1M)', category: 'Топовые' },
-    { value: 'o1-mini', label: 'OpenAI o1-mini', apiModel: 'o1-mini', price: '₽90 вх / ₽360 вых (1M)', category: 'Топовые' },
-    { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', apiModel: 'claude-3-5-sonnet-20241022', price: '₽90 вх / ₽450 вых (1M)', category: 'Топовые' },
-    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', apiModel: 'gpt-4-turbo', price: '₽300 вх / ₽900 вых (1M)', category: 'Топовые' }
+    { value: 'gpt-5', label: 'GPT-5', apiModel: 'gpt-5-2025-08-07', price: '₽323 вх / ₽2577 вых (1M)', category: 'Топовые' },
+    { value: 'o3', label: 'OpenAI o3', apiModel: 'o3-2025-04-16', price: '₽607 вх / ₽1685 вых (1M)', category: 'Топовые' },
+    { value: 'gpt-4o', label: 'GPT-4o', apiModel: 'gpt-4o-2024-11-20', price: '₽645 вх / ₽2577 вых (1M)', category: 'Топовые' },
+    { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', apiModel: 'claude-sonnet-4-5-20250929', price: '₽774 вх / ₽3866 вых (1M)', category: 'Топовые' },
+    { value: 'o3-pro', label: 'OpenAI o3-pro', apiModel: 'o3-pro-2025-06-10', price: '₽2527 вх / ₽10106 вых (1M)', category: 'Премиум' },
+    { value: 'claude-opus-4', label: 'Claude Opus 4', apiModel: 'claude-opus-4-20250514', price: '₽3866 вх / ₽19327 вых (1M)', category: 'Премиум' }
   ],
   qwen: [
     { value: 'qwen-turbo', label: 'Qwen Turbo', apiModel: 'qwen-turbo', price: '¥0.3 вх / ¥0.6 вых (1M)', category: 'Дешевые' },
