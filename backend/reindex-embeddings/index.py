@@ -91,7 +91,7 @@ def handler(event: dict, context) -> dict:
 
             if action == 'start':
                 cur.execute("""
-                    SELECT embedding_provider, embedding_doc_model
+                    SELECT embedding_provider, embedding_doc_model, revectorization_status, revectorization_progress
                     FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings
                     WHERE tenant_id = %s
                 """, (tenant_id,))
@@ -109,6 +109,8 @@ def handler(event: dict, context) -> dict:
 
                 embedding_provider = settings_row[0] or 'yandex'
                 embedding_doc_model = settings_row[1] or 'text-search-doc'
+                current_status = settings_row[2]
+                current_progress = settings_row[3] if settings_row[3] else 0
 
                 cur.execute("""
                     SELECT COUNT(*) FROM t_p56134400_telegram_ai_bot_pdf.tenant_documents
@@ -126,24 +128,24 @@ def handler(event: dict, context) -> dict:
                         'isBase64Encoded': False
                     }
 
+                # Если статус НЕ 'in_progress', то это новая переиндексация — сбрасываем прогресс
+                # Если статус 'in_progress', то продолжаем с текущего прогресса
+                if current_status != 'in_progress':
+                    current_progress = 0
+                    print(f"[Reindex] Starting NEW reindexing, resetting progress to 0")
+                else:
+                    print(f"[Reindex] Continuing EXISTING reindexing from progress {current_progress}")
+
                 cur.execute("""
                     UPDATE t_p56134400_telegram_ai_bot_pdf.tenant_settings
                     SET 
                         revectorization_status = 'in_progress',
-                        revectorization_progress = 0,
+                        revectorization_progress = %s,
                         revectorization_total = %s,
                         revectorization_model = %s,
                         revectorization_error = NULL
                     WHERE tenant_id = %s
-                """, (total_docs, f"{embedding_provider}:{embedding_doc_model}", tenant_id))
-
-                # Получаем текущий прогресс
-                cur.execute("""
-                    SELECT revectorization_progress FROM t_p56134400_telegram_ai_bot_pdf.tenant_settings
-                    WHERE tenant_id = %s
-                """, (tenant_id,))
-                progress_row = cur.fetchone()
-                current_progress = progress_row[0] if progress_row and progress_row[0] else 0
+                """, (current_progress, total_docs, f"{embedding_provider}:{embedding_doc_model}", tenant_id))
                 
                 cur.execute("""
                     SELECT id FROM t_p56134400_telegram_ai_bot_pdf.tenant_documents
