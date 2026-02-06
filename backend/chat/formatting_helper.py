@@ -63,8 +63,8 @@ def format_with_settings(text: str, settings: dict, messenger: str) -> str:
     elif messenger == 'widget':
         # HTML для виджета: оставляем HTML теги, они работают в браузере
         pass  # HTML теги поддерживаются в виджете нативно
-    elif messenger in ['max', 'vk']:
-        # Удаляем HTML-теги для MAX и VK
+    elif messenger in ['max', 'vk', 'voice']:
+        # Удаляем HTML-теги для MAX, VK и голосовых звонков
         text = re.sub(r'<b>(.+?)</b>', r'\1', text, flags=re.IGNORECASE | re.DOTALL)
         text = re.sub(r'<i>(.+?)</i>', r'\1', text, flags=re.IGNORECASE | re.DOTALL)
         text = re.sub(r'<[^>]+>', '', text)

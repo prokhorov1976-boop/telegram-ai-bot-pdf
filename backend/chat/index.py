@@ -403,6 +403,7 @@ def handler(event: dict, context) -> dict:
         # Обогащаем запрос: если указана дата без года, добавляем год и период
         def enrich_date_query(text):
             """Добавляет год к датам и преобразует в формат периода для лучшего поиска"""
+            from calendar import monthrange
             today = now_moscow().date()
             current_year = today.year
             next_year = current_year + 1
@@ -432,8 +433,7 @@ def handler(event: dict, context) -> dict:
                     
                     # Формат ТОЧНО как в документах: "Период: 01.03.2026-31.03.2026"
                     # Определяем последний день месяца
-                    import calendar
-                    last_day = calendar.monthrange(year, month_num)[1]
+                    last_day = monthrange(year, month_num)[1]
                     period_str = f"Период: 01.{month_num:02d}.{year}-{last_day:02d}.{month_num:02d}.{year}"
                     
                     # Добавляем также дату в формате "12.03.2026" для лучшего матчинга
