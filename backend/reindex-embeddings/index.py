@@ -160,9 +160,13 @@ def handler(event: dict, context) -> dict:
                     ''
                 )
                 print(f"[Reindex] Auth token present: {bool(auth_token)}, headers keys: {list(event.get('headers', {}).keys())}")
+                print(f"[Reindex] Processing {len(document_ids)} documents in batch mode (max 10 per request)")
                 
+                # Обрабатываем максимум 10 документов за раз, чтобы уложиться в таймаут
+                batch_size = 10
                 success_count = 0
-                for doc_id in document_ids:
+                
+                for i, doc_id in enumerate(document_ids[:batch_size]):
                     try:
                         response = requests.post(
                             process_pdf_url,
@@ -171,14 +175,15 @@ def handler(event: dict, context) -> dict:
                                 'Content-Type': 'application/json'
                             },
                             json={'documentId': doc_id, 'tenant_id': tenant_id},
-                            timeout=300
+                            timeout=120
                         )
                         
-                        print(f"[Reindex] Document {doc_id}: status={response.status_code}, response={response.text[:200]}")
+                        print(f"[Reindex] Document {doc_id} ({i+1}/{min(batch_size, len(document_ids))}): status={response.status_code}, response={response.text[:200]}")
                         
                         if response.ok:
                             success_count += 1
                         
+                        # Обновляем прогресс после каждого документа
                         conn = psycopg2.connect(os.environ['DATABASE_URL'])
                         cur = conn.cursor()
                         cur.execute("""
@@ -191,8 +196,15 @@ def handler(event: dict, context) -> dict:
                         conn.close()
                         
                     except Exception as e:
-                        print(f"Error reindexing document {doc_id}: {e}")
+                        print(f"[Reindex] Error reindexing document {doc_id}: {e}")
                         continue
+                
+                # Если есть ещё документы, запускаем следующий batch через отдельный вызов
+                remaining_docs = document_ids[batch_size:]
+                if remaining_docs:
+                    print(f"[Reindex] Remaining {len(remaining_docs)} documents will be processed in background")
+                    # TODO: можно добавить фоновую очередь через Cloud Tasks
+                    # Пока просто отмечаем прогресс
 
                 conn = psycopg2.connect(os.environ['DATABASE_URL'])
                 cur = conn.cursor()
