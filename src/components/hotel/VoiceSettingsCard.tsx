@@ -47,6 +47,7 @@ const AI_MODELS = {
     { value: 'qwen-2.5-32b', label: 'Qwen 2.5 32B', price: '$0.18 вх / $0.18 вых (1M)' },
     { value: 'qwen-3-72b', label: 'Qwen 3 72B', price: '$0.35 вх / $0.35 вых (1M)' },
     { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '$0.15 вх / $0.60 вых (1M)' },
+    { value: 'claude-3-haiku', label: 'Claude 3 Haiku', price: '$0.25 вх / $1.25 вых (1M)' },
     { value: 'gemini-pro-1.5', label: 'Gemini Pro 1.5', price: '$1.25 вх / $5.00 вых (1M)' },
     { value: 'gpt-4o', label: 'GPT-4o', price: '$2.50 вх / $10.00 вых (1M)' },
     { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', price: '$3.00 вх / $15.00 вых (1M)' }
