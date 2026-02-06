@@ -126,7 +126,14 @@ def handler(event: dict, context) -> dict:
                     if ai_response.status_code == 200:
                         ai_data = ai_response.json()
                         response_text = ai_data.get('message', 'Извините, не смог обработать запрос.')
-                        print(f"[Voximplant] AI answer: {response_text}")
+                        print(f"[Voximplant] AI answer (raw): {response_text}")
+                        
+                        # Убираем технические метки из голосового ответа
+                        import re
+                        response_text = re.sub(r'^УТОЧНЕНИЕ\s*\n+', '', response_text, flags=re.IGNORECASE)
+                        response_text = re.sub(r'^ОТВЕТ\s*\n+', '', response_text, flags=re.IGNORECASE)
+                        response_text = response_text.strip()
+                        print(f"[Voximplant] AI answer (cleaned): {response_text}")
                         
                         # Проверка команды перевода звонка
                         if call_transfer_enabled and admin_phone and 'TRANSFER_CALL' in response_text:
