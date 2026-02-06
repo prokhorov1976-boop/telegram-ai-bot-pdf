@@ -8,6 +8,7 @@ from api_keys_helper import get_tenant_api_key
 def handler(event: dict, context) -> dict:
     """Переиндексация эмбеддингов после смены модели"""
     method = event.get('httpMethod', 'POST')
+    print(f"[Reindex] START: method={method}, query={event.get('queryStringParameters')}, headers_keys={list(event.get('headers', {}).keys())}")
 
     if method == 'OPTIONS':
         return {
@@ -25,8 +26,10 @@ def handler(event: dict, context) -> dict:
         # Получаем tenant_id из query параметров (передается фронтендом)
         query_params = event.get('queryStringParameters') or {}
         tenant_id = query_params.get('tenant_id')
+        print(f"[Reindex] Query params: {query_params}, tenant_id={tenant_id}")
         
         if not tenant_id:
+            print(f"[Reindex] ERROR: No tenant_id in query params")
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -35,6 +38,7 @@ def handler(event: dict, context) -> dict:
             }
         
         tenant_id = int(tenant_id)
+        print(f"[Reindex] Parsed tenant_id={tenant_id}, method={method}")
 
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
         cur = conn.cursor()
