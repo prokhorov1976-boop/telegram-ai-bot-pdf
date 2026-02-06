@@ -106,7 +106,7 @@ def handler(event: dict, context) -> dict:
             else:
                 # КРИТИЧНО: Проверка на триггер "бронирование" — сразу предлагаем сайт и оператора
                 import re
-                booking_keywords = r'(забронир|бронир|номер|заказ|свободн|цен)'
+                booking_keywords = r'(забронир|бронир|заказ)'
                 if re.search(booking_keywords, speech_text.lower()):
                     print(f"[Voximplant] Booking trigger detected in: {speech_text}")
                     
