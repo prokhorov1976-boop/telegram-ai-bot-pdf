@@ -13,6 +13,13 @@ interface EmbeddingSettings {
   embedding_query_model: string;
 }
 
+interface ReindexStatus {
+  status: 'idle' | 'in_progress' | 'completed' | 'failed';
+  progress: number;
+  total: number;
+  error?: string;
+}
+
 interface EmbeddingsSettingsProps {
   currentTenantId: number | null;
   tenantName?: string;
@@ -28,12 +35,27 @@ const EmbeddingsSettings = ({ currentTenantId, tenantName, fz152Enabled = false 
   const [editedProvider, setEditedProvider] = useState('');
   const [editedDocModel, setEditedDocModel] = useState('');
   const [editedQueryModel, setEditedQueryModel] = useState('');
+  const [reindexStatus, setReindexStatus] = useState<ReindexStatus | null>(null);
+  const [isReindexing, setIsReindexing] = useState(false);
 
   useEffect(() => {
     if (currentTenantId) {
       loadSettings();
+      loadReindexStatus();
     }
   }, [currentTenantId]);
+
+  useEffect(() => {
+    if (!currentTenantId) return;
+    
+    const interval = setInterval(() => {
+      if (reindexStatus?.status === 'in_progress') {
+        loadReindexStatus();
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [currentTenantId, reindexStatus?.status]);
 
   const loadSettings = async () => {
     setIsLoading(true);
@@ -62,6 +84,25 @@ const EmbeddingsSettings = ({ currentTenantId, tenantName, fz152Enabled = false 
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadReindexStatus = async () => {
+    if (!currentTenantId) return;
+    
+    try {
+      const response = await authenticatedFetch(`${BACKEND_URLS.reindexEmbeddings}?tenant_id=${currentTenantId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setReindexStatus({
+          status: data.status || 'idle',
+          progress: data.progress || 0,
+          total: data.total || 0,
+          error: data.error
+        });
+      }
+    } catch (error) {
+      console.error('Error loading reindex status:', error);
     }
   };
 
@@ -107,10 +148,11 @@ const EmbeddingsSettings = ({ currentTenantId, tenantName, fz152Enabled = false 
   const handleReindex = async () => {
     if (!currentTenantId) return;
 
-    if (!confirm(`Переиндексировать все документы? Это может занять время.`)) {
+    if (reindexStatus?.status !== 'in_progress' && !confirm(`Переиндексировать все документы? Это может занять время.`)) {
       return;
     }
 
+    setIsReindexing(true);
     try {
       const response = await authenticatedFetch(`${BACKEND_URLS.reindexEmbeddings}?tenant_id=${currentTenantId}`, {
         method: 'POST',
@@ -120,11 +162,25 @@ const EmbeddingsSettings = ({ currentTenantId, tenantName, fz152Enabled = false 
 
       if (response.ok) {
         const data = await response.json();
-        toast({
-          title: '✓ Переиндексация запущена',
-          description: `Обработано документов: ${data.reindexed} из ${data.total}`,
-          duration: 7000
+        setReindexStatus({
+          status: data.status || 'in_progress',
+          progress: data.reindexed || 0,
+          total: data.total || 0
         });
+        
+        if (data.status === 'completed') {
+          toast({
+            title: '✅ Переиндексация завершена',
+            description: `Обработано документов: ${data.reindexed} из ${data.total}`,
+            duration: 5000
+          });
+        } else {
+          toast({
+            title: '⏳ Переиндексация в процессе',
+            description: `Обработано: ${data.reindexed} из ${data.total}`,
+            duration: 3000
+          });
+        }
       } else {
         const error = await response.json();
         throw new Error(error.error || 'Failed to start reindexing');
@@ -135,6 +191,8 @@ const EmbeddingsSettings = ({ currentTenantId, tenantName, fz152Enabled = false 
         description: error.message,
         variant: 'destructive'
       });
+    } finally {
+      setIsReindexing(false);
     }
   };
 
@@ -226,6 +284,56 @@ const EmbeddingsSettings = ({ currentTenantId, tenantName, fz152Enabled = false 
               </div>
             </div>
 
+            {reindexStatus && reindexStatus.status !== 'idle' && (
+              <div className="p-4 rounded-lg border-2 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {reindexStatus.status === 'in_progress' && (
+                      <Icon name="Loader2" size={20} className="animate-spin text-blue-600" />
+                    )}
+                    {reindexStatus.status === 'completed' && (
+                      <Icon name="CheckCircle2" size={20} className="text-green-600" />
+                    )}
+                    {reindexStatus.status === 'failed' && (
+                      <Icon name="XCircle" size={20} className="text-red-600" />
+                    )}
+                    <span className="font-semibold text-slate-900">
+                      {reindexStatus.status === 'in_progress' && 'Переиндексация в процессе...'}
+                      {reindexStatus.status === 'completed' && 'Переиндексация завершена'}
+                      {reindexStatus.status === 'failed' && 'Ошибка переиндексации'}
+                    </span>
+                  </div>
+                  <span className="text-sm font-mono text-slate-700">
+                    {reindexStatus.progress} / {reindexStatus.total}
+                  </span>
+                </div>
+                
+                <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-500 ${
+                      reindexStatus.status === 'completed' ? 'bg-green-500' :
+                      reindexStatus.status === 'failed' ? 'bg-red-500' :
+                      'bg-gradient-to-r from-blue-500 to-indigo-600'
+                    }`}
+                    style={{ width: `${reindexStatus.total > 0 ? (reindexStatus.progress / reindexStatus.total * 100) : 0}%` }}
+                  />
+                </div>
+                
+                {reindexStatus.total > 0 && (
+                  <div className="mt-2 text-sm text-slate-600">
+                    {reindexStatus.status === 'in_progress' && `Осталось: ${reindexStatus.total - reindexStatus.progress} документов`}
+                    {reindexStatus.status === 'completed' && `Все ${reindexStatus.total} документов обработаны`}
+                  </div>
+                )}
+                
+                {reindexStatus.error && (
+                  <div className="mt-2 text-sm text-red-600 font-medium">
+                    {reindexStatus.error}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-3">
               <Button
                 onClick={() => setIsEditing(true)}
@@ -238,10 +346,15 @@ const EmbeddingsSettings = ({ currentTenantId, tenantName, fz152Enabled = false 
               <Button
                 variant="secondary"
                 onClick={handleReindex}
+                disabled={isReindexing}
                 className="flex-1"
               >
-                <Icon name="RefreshCw" size={18} className="mr-2" />
-                Переиндексировать документы
+                {isReindexing || reindexStatus?.status === 'in_progress' ? (
+                  <Icon name="Loader2" size={18} className="mr-2 animate-spin" />
+                ) : (
+                  <Icon name="RefreshCw" size={18} className="mr-2" />
+                )}
+                {reindexStatus?.status === 'in_progress' ? 'Продолжить' : 'Переиндексировать документы'}
               </Button>
             </div>
           </div>
