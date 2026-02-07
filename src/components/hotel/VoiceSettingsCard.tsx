@@ -24,6 +24,7 @@ interface VoiceSettings {
   max_tokens: number;
   call_transfer_enabled: boolean;
   admin_phone_number: string;
+  voice: string;
 }
 
 const AI_MODELS = {
@@ -99,7 +100,8 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
     voice_provider: 'openrouter',
     max_tokens: 500,
     call_transfer_enabled: false,
-    admin_phone_number: ''
+    admin_phone_number: '',
+    voice: 'maria'
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -294,6 +296,29 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
               </p>
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="voice-select">Голос для озвучивания</Label>
+            <Select
+              value={settings.voice}
+              onValueChange={(value) =>
+                setSettings(prev => ({ ...prev, voice: value }))
+              }
+            >
+              <SelectTrigger id="voice-select">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="maria">Maria (женский, нейтральный)</SelectItem>
+                <SelectItem value="alexander">Alexander (мужской, нейтральный)</SelectItem>
+                <SelectItem value="oksana">Oksana (женский, эмоциональный)</SelectItem>
+                <SelectItem value="pavel">Pavel (мужской, эмоциональный)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Выберите голос для синтеза речи в звонках
+            </p>
+          </div>
         </div>
 
         {/* Выбор AI модели */}

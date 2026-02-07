@@ -86,6 +86,7 @@ def handler(event: dict, context) -> dict:
         ai_settings = tenant.get('ai_settings') or {}
         call_transfer_enabled = ai_settings.get('call_transfer_enabled', False)
         admin_phone = ai_settings.get('admin_phone_number', '')
+        voice = ai_settings.get('voice', 'maria')  # Дефолтный голос - maria
 
         if event_type == 'call_started':
             response_text = greeting
@@ -139,7 +140,8 @@ def handler(event: dict, context) -> dict:
                             'body': json.dumps({
                                 'text': response_text,
                                 'action': 'transfer',
-                                'phone_number': admin_phone
+                                'phone_number': admin_phone,
+                                'voice': voice
                             }),
                             'isBase64Encoded': False
                         }
@@ -204,7 +206,8 @@ def handler(event: dict, context) -> dict:
                                 'body': json.dumps({
                                     'text': response_text,
                                     'action': 'transfer',
-                                    'phone_number': admin_phone
+                                    'phone_number': admin_phone,
+                                    'voice': voice
                                 }),
                                 'isBase64Encoded': False
                             }
@@ -254,7 +257,8 @@ def handler(event: dict, context) -> dict:
 
         response_data = {
             'text': response_text,
-            'action': 'speak'
+            'action': 'speak',
+            'voice': voice
         }
         response_body = json.dumps(response_data)
         print(f"[Voximplant] Returning response: {response_data}")
