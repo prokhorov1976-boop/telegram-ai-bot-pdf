@@ -9,11 +9,9 @@ interface VoiceCallTransferSectionProps {
   callTransferEnabled: boolean;
   adminPhoneNumber: string;
   voice: string;
-  isTestCalling: boolean;
   onCallTransferChange: (enabled: boolean) => void;
   onAdminPhoneChange: (phone: string) => void;
   onVoiceChange: (voice: string) => void;
-  onTestCall: () => void;
 }
 
 const VOICE_GENDERS: Record<string, 'female' | 'male'> = {
@@ -27,11 +25,9 @@ export function VoiceCallTransferSection({
   callTransferEnabled,
   adminPhoneNumber,
   voice,
-  isTestCalling,
   onCallTransferChange,
   onAdminPhoneChange,
-  onVoiceChange,
-  onTestCall
+  onVoiceChange
 }: VoiceCallTransferSectionProps) {
   return (
     <div className="space-y-4 p-4 border-2 border-green-200 rounded-lg bg-green-50/30">
@@ -87,32 +83,7 @@ export function VoiceCallTransferSection({
         </p>
       </div>
 
-      {callTransferEnabled && adminPhoneNumber && (
-        <div className="space-y-2 pt-2 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onTestCall}
-            disabled={isTestCalling}
-            className="w-full"
-          >
-            {isTestCalling ? (
-              <>
-                <Icon name="Loader2" size={16} className="animate-spin mr-2" />
-                Звоним...
-              </>
-            ) : (
-              <>
-                <Icon name="Phone" size={16} className="mr-2" />
-                Тестовый звонок
-              </>
-            )}
-          </Button>
-          <p className="text-xs text-muted-foreground text-center">
-            Позвоним на номер администратора для проверки голоса
-          </p>
-        </div>
-      )}
+
     </div>
   );
 }

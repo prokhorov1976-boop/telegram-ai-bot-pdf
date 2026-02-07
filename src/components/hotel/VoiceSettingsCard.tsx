@@ -70,7 +70,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isTestCalling, setIsTestCalling] = useState(false);
 
   useEffect(() => {
     if (tenantId) {
@@ -162,51 +161,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
       title: "Промпт сброшен",
       description: `Установлен стандартный промпт для ${gender === 'female' ? 'женского' : 'мужского'} голоса`
     });
-  };
-
-  const handleTestCall = async () => {
-    if (!tenantId || !settings.admin_phone_number) {
-      toast({
-        title: "Ошибка",
-        description: "Не указан номер телефона администратора",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsTestCalling(true);
-    try {
-      const response = await authenticatedFetch(TEST_CALL_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tenant_id: tenantId,
-          phone_number: settings.admin_phone_number
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('Test call failed:', data);
-        throw new Error(data.error || data.details || 'Failed to initiate test call');
-      }
-
-      toast({
-        title: "Звонок инициирован",
-        description: `Через несколько секунд поступит тестовый звонок на номер ${settings.admin_phone_number}`,
-      });
-    } catch (error) {
-      console.error('Test call error:', error);
-      const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка";
-      toast({
-        title: "Ошибка",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    } finally {
-      setIsTestCalling(false);
-    }
   };
 
   const handleVoiceChange = (voice: string) => {
@@ -305,7 +259,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
           callTransferEnabled={settings.call_transfer_enabled}
           adminPhoneNumber={settings.admin_phone_number}
           voice={settings.voice}
-          isTestCalling={isTestCalling}
           onCallTransferChange={(enabled) =>
             setSettings(prev => ({ ...prev, call_transfer_enabled: enabled }))
           }
@@ -313,7 +266,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
             setSettings(prev => ({ ...prev, admin_phone_number: phone }))
           }
           onVoiceChange={handleVoiceChange}
-          onTestCall={handleTestCall}
         />
 
         <VoiceAIModelSection
