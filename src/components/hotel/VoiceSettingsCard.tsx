@@ -185,8 +185,11 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
         })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to initiate test call');
+        console.error('Test call failed:', data);
+        throw new Error(data.error || data.details || 'Failed to initiate test call');
       }
 
       toast({
@@ -195,9 +198,10 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
       });
     } catch (error) {
       console.error('Test call error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка";
       toast({
         title: "Ошибка",
-        description: "Не удалось инициировать тестовый звонок",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

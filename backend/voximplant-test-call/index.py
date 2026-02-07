@@ -72,14 +72,38 @@ def handler(event: dict, context) -> dict:
         voice = ai_settings.get('voice', 'maria')
         greeting = result.get('voximplant_greeting') or 'Здравствуйте! Это тестовый звонок для проверки настроек голоса.'
 
+        # Проверяем наличие Voximplant credentials
+        account_id = os.environ.get('VOXIMPLANT_ACCOUNT_ID')
+        api_key = os.environ.get('VOXIMPLANT_API_KEY')
+        rule_id = os.environ.get('VOXIMPLANT_RULE_ID')
+        
+        if not all([account_id, api_key, rule_id]):
+            missing = []
+            if not account_id:
+                missing.append('VOXIMPLANT_ACCOUNT_ID')
+            if not api_key:
+                missing.append('VOXIMPLANT_API_KEY')
+            if not rule_id:
+                missing.append('VOXIMPLANT_RULE_ID')
+            
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({
+                    'error': 'Voximplant не настроен',
+                    'details': f"Отсутствуют секреты: {', '.join(missing)}. Настройте их в разделе Секреты."
+                }),
+                'isBase64Encoded': False
+            }
+
         # Отправляем запрос в Voximplant API для инициации звонка
         # Используем ваш Voximplant аккаунт и правило
         voximplant_api_url = 'https://api.voximplant.com/platform_api/StartScenarios/'
         
         voximplant_payload = {
-            'account_id': os.environ.get('VOXIMPLANT_ACCOUNT_ID'),
-            'api_key': os.environ.get('VOXIMPLANT_API_KEY'),
-            'rule_id': os.environ.get('VOXIMPLANT_RULE_ID'),
+            'account_id': account_id,
+            'api_key': api_key,
+            'rule_id': rule_id,
             'script_custom_data': json.dumps({
                 'phone': phone_number,
                 'voice': voice,

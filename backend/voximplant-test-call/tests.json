@@ -5,12 +5,15 @@
       "method": "POST",
       "path": "/",
       "body": {
-        "tenant_id": "test-tenant-id",
+        "tenant_id": 2,
         "phone_number": "+79991234567"
       },
       "expectedStatus": 200,
       "expectedBody": {
-        "success": true
+        "success": true,
+        "message": "string",
+        "voice": "string",
+        "phone": "string"
       },
       "bodyMatcher": "partial"
     },
@@ -19,7 +22,7 @@
       "method": "POST",
       "path": "/",
       "body": {
-        "tenant_id": "test-tenant-id"
+        "tenant_id": 2
       },
       "expectedStatus": 400,
       "expectedBody": {
