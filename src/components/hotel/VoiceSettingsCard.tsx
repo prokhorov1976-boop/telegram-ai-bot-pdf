@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { authenticatedFetch } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { VoiceCallTransferSection, VOICE_GENDERS } from './voice-settings/VoiceCallTransferSection';
+import { VoiceAIModelSection, AI_MODELS } from './voice-settings/VoiceAIModelSection';
+import { VoiceSystemPromptSection } from './voice-settings/VoiceSystemPromptSection';
 
 interface VoiceSettingsCardProps {
   tenantId: number;
@@ -26,52 +27,6 @@ interface VoiceSettings {
   admin_phone_number: string;
   voice: string;
 }
-
-const AI_MODELS = {
-  yandex: [
-    { value: 'yandexgpt', label: 'YandexGPT', price: '₽1 вх / ₽2 вых (1K)' },
-    { value: 'yandexgpt-lite', label: 'YandexGPT Lite', price: '₽0.12 вх / ₽0.24 вых (1K)' }
-  ],
-  deepseek: [
-    { value: 'deepseek-chat', label: 'DeepSeek V3', price: '$0.14 вх / $0.28 вых (1M)' },
-    { value: 'deepseek-reasoner', label: 'DeepSeek R1', price: '$0.55 вх / $2.19 вых (1M)' }
-  ],
-  openai: [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '$0.15 вх / $0.60 вых (1M)' },
-    { value: 'gpt-4o', label: 'GPT-4o', price: '$2.50 вх / $10.00 вых (1M)' },
-    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', price: '$10 вх / $30 вых (1M)' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', price: '$0.50 вх / $1.50 вых (1M)' },
-    { value: 'o1-preview', label: 'O1 Preview', price: '$15 вх / $60 вых (1M)' },
-    { value: 'o1-mini', label: 'O1 Mini', price: '$3 вх / $12 вых (1M)' }
-  ],
-  openrouter: [
-    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', price: 'Бесплатно (1M контекст)' },
-    { value: 'llama-3.3-70b', label: 'Llama 3.3 70B', price: 'Бесплатно' },
-    { value: 'deepseek-v3', label: 'DeepSeek V3', price: 'Бесплатно' },
-    { value: 'deepseek-r1', label: 'DeepSeek R1', price: 'Бесплатно (рассуждения)' },
-    { value: 'qwen-2.5-72b', label: 'Qwen 2.5 72B', price: 'Бесплатно' },
-    { value: 'gemini-flash-1.5', label: 'Gemini Flash 1.5', price: '$0.075 вх / $0.30 вых (1M)' },
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '$0.15 вх / $0.60 вых (1M)' },
-    { value: 'claude-3-haiku', label: 'Claude 3 Haiku', price: '$0.25 вх / $1.25 вых (1M)' },
-    { value: 'gemini-pro-1.5', label: 'Gemini Pro 1.5', price: '$1.25 вх / $5.00 вых (1M)' },
-    { value: 'gpt-4o', label: 'GPT-4o', price: '$2.50 вх / $10.00 вых (1M)' },
-    { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet', price: '$3.00 вх / $15.00 вых (1M)' }
-  ],
-  proxyapi: [
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', price: '₽39 вх / ₽155 вых (1M)' },
-    { value: 'claude-3.5-haiku', label: 'Claude 3.5 Haiku', price: '₽258 вх / ₽1289 вых (1M)' },
-    { value: 'gpt-5', label: 'GPT-5', price: '₽323 вх / ₽2577 вых (1M)' },
-    { value: 'gpt-4o', label: 'GPT-4o', price: '₽645 вх / ₽2577 вых (1M)' },
-    { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', price: '₽774 вх / ₽3866 вых (1M)' }
-  ]
-};
-
-const VOICE_GENDERS: Record<string, 'female' | 'male'> = {
-  maria: 'female',
-  alexander: 'male',
-  oksana: 'female',
-  pavel: 'male'
-};
 
 const getDefaultPrompt = (gender: 'female' | 'male') => `Ты — AI-консьерж${gender === 'female' ? '' : ''} по телефону. Отвечай КРАТКО и разговорно, как живой человек.
 
@@ -129,15 +84,12 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
       if (response.ok) {
         const data = await response.json();
         
-        // Валидация: проверяем, что модель соответствует провайдеру
         const provider = data.voice_provider || 'openrouter';
         let model = data.voice_model || 'gemini-2.0-flash';
         
-        // Проверяем, существует ли такая модель для данного провайдера
         const providerModels = AI_MODELS[provider as keyof typeof AI_MODELS] || [];
         const modelExists = providerModels.some(m => m.value === model);
         
-        // Если модель не подходит провайдеру - берём первую доступную
         if (!modelExists && providerModels.length > 0) {
           console.warn(`Model ${model} not found for provider ${provider}, using default ${providerModels[0].value}`);
           model = providerModels[0].value;
@@ -151,7 +103,8 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
           voice_provider: provider,
           max_tokens: data.max_tokens || 500,
           call_transfer_enabled: data.call_transfer_enabled || false,
-          admin_phone_number: data.admin_phone_number || ''
+          admin_phone_number: data.admin_phone_number || '',
+          voice: data.voice || 'maria'
         });
       }
     } catch (error) {
@@ -235,7 +188,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
         throw new Error('Failed to initiate test call');
       }
 
-      const data = await response.json();
       toast({
         title: "Звонок инициирован",
         description: `Через несколько секунд поступит тестовый звонок на номер ${settings.admin_phone_number}`,
@@ -250,6 +202,28 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
     } finally {
       setIsTestCalling(false);
     }
+  };
+
+  const handleVoiceChange = (voice: string) => {
+    const gender = VOICE_GENDERS[voice] || 'female';
+    const newPrompt = getDefaultPrompt(gender);
+    setSettings(prev => ({ 
+      ...prev, 
+      voice: voice,
+      voice_system_prompt: prev.voice_system_prompt === DEFAULT_VOICE_PROMPT || 
+                           prev.voice_system_prompt === getDefaultPrompt('male') ||
+                           prev.voice_system_prompt === getDefaultPrompt('female')
+        ? newPrompt 
+        : prev.voice_system_prompt
+    }));
+  };
+
+  const handleProviderChange = (provider: string) => {
+    setSettings(prev => ({ 
+      ...prev, 
+      voice_provider: provider,
+      voice_model: AI_MODELS[provider as keyof typeof AI_MODELS]?.[0]?.value || ''
+    }));
   };
 
   if (isLoading) {
@@ -270,19 +244,16 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
           Настройки голосовых звонков
           {tenantName && <span className="text-sm text-muted-foreground ml-2">— {tenantName}</span>}
         </CardTitle>
-        <CardDescription>
-          Управление Voximplant интеграцией и AI для телефонных звонков
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">
-        {/* Включение Voximplant */}
-        <div className="flex items-center justify-between p-4 border rounded-lg bg-slate-50">
+        <div className="flex items-center justify-between p-4 border-2 border-blue-200 rounded-lg bg-blue-50/30">
           <div className="space-y-0.5">
-            <Label htmlFor="voximplant-enabled" className="text-base font-semibold">
-              Голосовые звонки
+            <Label htmlFor="voximplant-enabled" className="text-base font-semibold flex items-center gap-2">
+              <Icon name="PhoneCall" size={20} className="text-blue-600" />
+              Включить голосовые звонки
             </Label>
             <p className="text-sm text-muted-foreground">
-              Включить обработку входящих звонков через Voximplant
+              AI-консьерж будет принимать входящие звонки и отвечать на вопросы
             </p>
           </div>
           <Switch
@@ -294,7 +265,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
           />
         </div>
 
-        {/* Приветствие */}
         <div className="space-y-2">
           <Label htmlFor="greeting" className="text-base font-semibold">
             Приветствие при звонке
@@ -314,263 +284,53 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
           </p>
         </div>
 
-        {/* Перевод на оператора */}
-        <div className="space-y-4 p-4 border-2 border-green-200 rounded-lg bg-green-50/30">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="call-transfer" className="text-base font-semibold flex items-center gap-2">
-                <Icon name="PhoneForwarded" size={20} className="text-green-600" />
-                Перевод на оператора
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                AI автоматически переведет звонок, если клиент попросит живого человека
-              </p>
-            </div>
-            <Switch
-              id="call-transfer"
-              checked={settings.call_transfer_enabled}
-              onCheckedChange={(checked) =>
-                setSettings(prev => ({ ...prev, call_transfer_enabled: checked }))
-              }
-            />
-          </div>
+        <VoiceCallTransferSection
+          callTransferEnabled={settings.call_transfer_enabled}
+          adminPhoneNumber={settings.admin_phone_number}
+          voice={settings.voice}
+          isTestCalling={isTestCalling}
+          onCallTransferChange={(enabled) =>
+            setSettings(prev => ({ ...prev, call_transfer_enabled: enabled }))
+          }
+          onAdminPhoneChange={(phone) =>
+            setSettings(prev => ({ ...prev, admin_phone_number: phone }))
+          }
+          onVoiceChange={handleVoiceChange}
+          onTestCall={handleTestCall}
+        />
 
-          {settings.call_transfer_enabled && (
-            <div className="space-y-2">
-              <Label htmlFor="admin-phone">Номер телефона администратора</Label>
-              <Input
-                id="admin-phone"
-                type="tel"
-                placeholder="+79991234567"
-                value={settings.admin_phone_number}
-                onChange={(e) =>
-                  setSettings(prev => ({ ...prev, admin_phone_number: e.target.value }))
-                }
-                className="font-mono"
-              />
-              <p className="text-xs text-muted-foreground">
-                На этот номер будут переводиться звонки при запросе оператора
-              </p>
-            </div>
-          )}
+        <VoiceAIModelSection
+          voiceProvider={settings.voice_provider}
+          voiceModel={settings.voice_model}
+          maxTokens={settings.max_tokens}
+          onProviderChange={handleProviderChange}
+          onModelChange={(model) =>
+            setSettings(prev => ({ ...prev, voice_model: model }))
+          }
+          onMaxTokensChange={(tokens) =>
+            setSettings(prev => ({ ...prev, max_tokens: tokens }))
+          }
+        />
 
-          <div className="space-y-2">
-            <Label htmlFor="voice-select">Голос для озвучивания</Label>
-            <Select
-              value={settings.voice}
-              onValueChange={(value) => {
-                const gender = VOICE_GENDERS[value] || 'female';
-                const newPrompt = getDefaultPrompt(gender);
-                setSettings(prev => ({ 
-                  ...prev, 
-                  voice: value,
-                  voice_system_prompt: prev.voice_system_prompt === DEFAULT_VOICE_PROMPT || 
-                                       prev.voice_system_prompt === getDefaultPrompt('male') ||
-                                       prev.voice_system_prompt === getDefaultPrompt('female')
-                    ? newPrompt 
-                    : prev.voice_system_prompt
-                }));
-              }}
-            >
-              <SelectTrigger id="voice-select">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="maria">Maria (женский, нейтральный)</SelectItem>
-                <SelectItem value="alexander">Alexander (мужской, нейтральный)</SelectItem>
-                <SelectItem value="oksana">Oksana (женский, эмоциональный)</SelectItem>
-                <SelectItem value="pavel">Pavel (мужской, эмоциональный)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Выберите голос для синтеза речи в звонках (промпт автоматически подстроится под пол)
-            </p>
-          </div>
+        <VoiceSystemPromptSection
+          voiceSystemPrompt={settings.voice_system_prompt}
+          voice={settings.voice}
+          onPromptChange={(prompt) =>
+            setSettings(prev => ({ ...prev, voice_system_prompt: prompt }))
+          }
+          onResetPrompt={handleResetPrompt}
+          getDefaultPrompt={getDefaultPrompt}
+        />
 
-          {settings.call_transfer_enabled && settings.admin_phone_number && (
-            <div className="space-y-2 pt-2 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleTestCall}
-                disabled={isTestCalling}
-                className="w-full"
-              >
-                {isTestCalling ? (
-                  <>
-                    <Icon name="Loader2" size={16} className="animate-spin mr-2" />
-                    Звоним...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="Phone" size={16} className="mr-2" />
-                    Тестовый звонок
-                  </>
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center">
-                Позвоним на номер администратора для проверки голоса
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Выбор AI модели */}
-        <div className="space-y-4 p-4 border-2 border-purple-200 rounded-lg bg-purple-50/30">
-          <div className="flex items-center gap-2">
-            <Icon name="Sparkles" size={20} className="text-purple-600" />
-            <h3 className="font-semibold text-lg">AI модель для голосовых ответов</h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="voice-provider">Провайдер</Label>
-              <Select
-                value={settings.voice_provider}
-                onValueChange={(value) =>
-                  setSettings(prev => ({ 
-                    ...prev, 
-                    voice_provider: value,
-                    voice_model: AI_MODELS[value as keyof typeof AI_MODELS]?.[0]?.value || ''
-                  }))
-                }
-              >
-                <SelectTrigger id="voice-provider">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="openrouter">OpenRouter (рекомендуется)</SelectItem>
-                  <SelectItem value="openai">OpenAI напрямую (через прокси)</SelectItem>
-                  <SelectItem value="yandex">Yandex</SelectItem>
-                  <SelectItem value="deepseek">DeepSeek</SelectItem>
-                  <SelectItem value="proxyapi">ProxyAPI</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="voice-model">Модель</Label>
-              <Select
-                value={settings.voice_model}
-                onValueChange={(value) =>
-                  setSettings(prev => ({ ...prev, voice_model: value }))
-                }
-              >
-                <SelectTrigger id="voice-model">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AI_MODELS[settings.voice_provider as keyof typeof AI_MODELS]?.map(model => (
-                    <SelectItem key={model.value} value={model.value}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{model.label}</span>
-                        <span className="text-xs text-muted-foreground">{model.price}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="max-tokens">Максимум токенов ответа</Label>
-            <Input
-              id="max-tokens"
-              type="number"
-              min={100}
-              max={2000}
-              step={50}
-              value={settings.max_tokens}
-              onChange={(e) =>
-                setSettings(prev => ({ ...prev, max_tokens: Number(e.target.value) }))
-              }
-            />
-            <p className="text-xs text-muted-foreground">
-              Меньше токенов = быстрее ответ (рекомендуется 500 для голоса)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <Icon name="Info" size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-blue-900">
-                <strong>Gemini 2.0 Flash</strong> — оптимальный выбор для голоса: быстрый (2-4 сек), бесплатный, качественный
-              </p>
-            </div>
-
-            {settings.voice_provider === 'openai' && (
-              <div className="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                <Icon name="AlertTriangle" size={16} className="text-orange-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-orange-900 space-y-1">
-                  <p><strong>⚠️ Для OpenAI напрямую нужно:</strong></p>
-                  <ol className="list-decimal list-inside space-y-0.5 ml-2">
-                    <li>Настроить прокси в разделе "Настройки прокси"</li>
-                    <li>Добавить OpenAI API ключ в "API ключи"</li>
-                  </ol>
-                  <p className="mt-2">GPT-4o Mini через прокси: $0.15 вх / $0.60 вых (1M)</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* System Prompt для голоса */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="voice-prompt" className="text-base font-semibold">
-              System Prompt для голосовых звонков
-            </Label>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleResetPrompt}
-            >
-              <Icon name="RotateCcw" size={14} className="mr-1" />
-              Сбросить
-            </Button>
-          </div>
-          
-          {/* Предпросмотр текущего пола бота */}
-          <div className="flex items-center gap-2 p-2 bg-purple-50 border border-purple-200 rounded-lg">
-            <Icon name="User" size={16} className="text-purple-600" />
-            <span className="text-sm font-medium text-purple-900">
-              Текущий пол бота: {VOICE_GENDERS[settings.voice] === 'female' ? 'Женский' : 'Мужской'}
-            </span>
-            {settings.voice_system_prompt !== getDefaultPrompt(VOICE_GENDERS[settings.voice]) && (
-              <span className="text-xs text-purple-600 ml-auto">(кастомный промпт)</span>
-            )}
-          </div>
-
-          <Textarea
-            id="voice-prompt"
-            value={settings.voice_system_prompt}
-            onChange={(e) =>
-              setSettings(prev => ({ ...prev, voice_system_prompt: e.target.value }))
-            }
-            rows={14}
-            className="font-mono text-sm resize-none"
-          />
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <Icon name="AlertTriangle" size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
-            <div className="text-xs text-amber-900 space-y-1">
-              <p><strong>Обязательно:</strong> Промпт должен содержать <code className="bg-amber-100 px-1 py-0.5 rounded">{'{rag_context_placeholder}'}</code></p>
-              <p>Для голоса важна краткость: max 2-3 предложения, никаких эмодзи и HTML</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Кнопка сохранения */}
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex gap-3 pt-4">
           <Button
             onClick={handleSaveSettings}
             disabled={isSaving}
-            size="lg"
-            className="w-full sm:w-auto"
+            className="flex-1"
           >
             {isSaving ? (
               <>
-                <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                <Icon name="Loader2" size={16} className="animate-spin mr-2" />
                 Сохранение...
               </>
             ) : (
