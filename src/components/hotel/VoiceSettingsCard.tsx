@@ -105,6 +105,7 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isTestCalling, setIsTestCalling] = useState(false);
 
   useEffect(() => {
     if (tenantId) {
@@ -193,6 +194,48 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
       ...prev,
       voice_system_prompt: DEFAULT_VOICE_PROMPT
     }));
+  };
+
+  const handleTestCall = async () => {
+    if (!tenantId || !settings.admin_phone_number) {
+      toast({
+        title: "Ошибка",
+        description: "Не указан номер телефона администратора",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsTestCalling(true);
+    try {
+      const response = await authenticatedFetch('https://functions.poehali.dev/3a7c3338-5c5d-492f-9481-cee963105817', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenant_id: tenantId,
+          phone_number: settings.admin_phone_number
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to initiate test call');
+      }
+
+      const data = await response.json();
+      toast({
+        title: "Звонок инициирован",
+        description: `Через несколько секунд поступит тестовый звонок на номер ${settings.admin_phone_number}`,
+      });
+    } catch (error) {
+      console.error('Test call error:', error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось инициировать тестовый звонок",
+        variant: "destructive"
+      });
+    } finally {
+      setIsTestCalling(false);
+    }
   };
 
   if (isLoading) {
@@ -319,6 +362,33 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
               Выберите голос для синтеза речи в звонках
             </p>
           </div>
+
+          {settings.call_transfer_enabled && settings.admin_phone_number && (
+            <div className="space-y-2 pt-2 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleTestCall}
+                disabled={isTestCalling}
+                className="w-full"
+              >
+                {isTestCalling ? (
+                  <>
+                    <Icon name="Loader2" size={16} className="animate-spin mr-2" />
+                    Звоним...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="Phone" size={16} className="mr-2" />
+                    Тестовый звонок
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Позвоним на номер администратора для проверки голоса
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Выбор AI модели */}
