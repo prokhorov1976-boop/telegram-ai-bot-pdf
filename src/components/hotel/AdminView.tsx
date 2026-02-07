@@ -30,6 +30,7 @@ import SpeechSettingsCard from './SpeechSettingsCard';
 import ProxySettingsCard from './ProxySettingsCard';
 import VoiceCallsHistory from './VoiceCallsHistory';
 import VoiceSettingsCard from './VoiceSettingsCard';
+import VoiceTestCard from './VoiceTestCard';
 import { Document, BACKEND_URLS } from './types';
 import { getTenantId, getTariffId, isSuperAdmin, getAdminUser, exitTenantView } from '@/lib/auth';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -318,6 +319,11 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
           <TabsContent value="voice" className="space-y-6">
             <VoiceSettingsCard
               tenantId={currentTenantId}
+              tenantName={tenantName}
+            />
+            <VoiceTestCard
+              tenantId={currentTenantId}
+              tenantSlug={tenantSlug}
               tenantName={tenantName}
             />
           </TabsContent>
