@@ -66,7 +66,14 @@ const AI_MODELS = {
   ]
 };
 
-const DEFAULT_VOICE_PROMPT = `Ты — AI-консьерж по телефону. Отвечай КРАТКО и разговорно, как живой человек.
+const VOICE_GENDERS: Record<string, 'female' | 'male'> = {
+  maria: 'female',
+  alexander: 'male',
+  oksana: 'female',
+  pavel: 'male'
+};
+
+const getDefaultPrompt = (gender: 'female' | 'male') => `Ты — AI-консьерж${gender === 'female' ? '' : ''} по телефону. Отвечай КРАТКО и разговорно, как живой человек.
 
 КРИТИЧНО — ОТВЕЧАЙ КОРОТКО:
 - Максимум 2-3 коротких предложения за раз
@@ -87,6 +94,8 @@ const DEFAULT_VOICE_PROMPT = `Ты — AI-консьерж по телефону
 {rag_context_placeholder}
 
 ЯЗЫК: Русский, на вы, тепло и естественно.`;
+
+const DEFAULT_VOICE_PROMPT = getDefaultPrompt('female');
 
 const VOICE_SETTINGS_URL = 'https://functions.poehali.dev/4e537d54-09a0-458a-b7b1-3687b690e7c1';
 
@@ -344,9 +353,19 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
             <Label htmlFor="voice-select">Голос для озвучивания</Label>
             <Select
               value={settings.voice}
-              onValueChange={(value) =>
-                setSettings(prev => ({ ...prev, voice: value }))
-              }
+              onValueChange={(value) => {
+                const gender = VOICE_GENDERS[value] || 'female';
+                const newPrompt = getDefaultPrompt(gender);
+                setSettings(prev => ({ 
+                  ...prev, 
+                  voice: value,
+                  voice_system_prompt: prev.voice_system_prompt === DEFAULT_VOICE_PROMPT || 
+                                       prev.voice_system_prompt === getDefaultPrompt('male') ||
+                                       prev.voice_system_prompt === getDefaultPrompt('female')
+                    ? newPrompt 
+                    : prev.voice_system_prompt
+                }));
+              }}
             >
               <SelectTrigger id="voice-select">
                 <SelectValue />
@@ -359,7 +378,7 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Выберите голос для синтеза речи в звонках
+              Выберите голос для синтеза речи в звонках (промпт автоматически подстроится под пол)
             </p>
           </div>
 

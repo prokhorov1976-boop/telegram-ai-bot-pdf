@@ -47,27 +47,30 @@ def handler(event: dict, context) -> dict:
         conn = psycopg2.connect(dsn)
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        cur.execute("""
-            SELECT voice_settings 
-            FROM tenants 
-            WHERE id = %s
+        schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
+        
+        cur.execute(f"""
+            SELECT t.voximplant_greeting, ts.ai_settings
+            FROM {schema}.tenants t
+            LEFT JOIN {schema}.tenant_settings ts ON t.id = ts.tenant_id
+            WHERE t.id = %s
         """, (tenant_id,))
         
         result = cur.fetchone()
         cur.close()
         conn.close()
 
-        if not result or not result.get('voice_settings'):
+        if not result:
             return {
                 'statusCode': 404,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Voice settings not found'}),
+                'body': json.dumps({'error': 'Tenant not found'}),
                 'isBase64Encoded': False
             }
 
-        voice_settings = result['voice_settings']
-        voice = voice_settings.get('voice', 'maria')
-        greeting = voice_settings.get('voximplant_greeting', 'Здравствуйте! Это тестовый звонок для проверки настроек голоса.')
+        ai_settings = result.get('ai_settings') or {}
+        voice = ai_settings.get('voice', 'maria')
+        greeting = result.get('voximplant_greeting') or 'Здравствуйте! Это тестовый звонок для проверки настроек голоса.'
 
         # Отправляем запрос в Voximplant API для инициации звонка
         # Используем ваш Voximplant аккаунт и правило
