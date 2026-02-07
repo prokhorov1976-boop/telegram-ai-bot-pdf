@@ -42,7 +42,7 @@ interface AdminViewProps {
   documents: Document[];
   isLoading: boolean;
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onDeleteDocument: (documentId: number) => Promise<any>;
+  onDeleteDocument: (documentId: number) => Promise<void>;
   currentTenantId: number | null;
   tenantName?: string;
   fz152Enabled?: boolean;
@@ -64,7 +64,8 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
     4 + // Документы, Мессенджеры, Страница, Виджет (всегда)
     ((superAdmin || fz152Enabled) ? 1 : 0) + // AI
     (fz152Enabled ? 1 : 0) + // 152-ФЗ
-    (superAdmin ? 2 : 0); // Эмбеддинги + Голос (только суперадмин)
+    (superAdmin ? 1 : 0) + // Эмбеддинги (только суперадмин)
+    (superAdmin && currentTenantId === 2 ? 1 : 0); // Голос (только Династия)
 
   const handleExitTenantView = () => {
     exitTenantView();
@@ -125,7 +126,7 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
               <span>Эмбеддинги</span>
             </TabsTrigger>
           )}
-          {superAdmin && (
+          {superAdmin && currentTenantId === 2 && (
             <TabsTrigger value="voice" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=inactive]:text-white py-3 px-4 text-base font-semibold">
               <Icon name="Phone" size={20} className="mr-2" />
               <span>Голос</span>
@@ -314,7 +315,7 @@ const AdminView = ({ documents, isLoading, onFileUpload, onDeleteDocument, curre
           </TabsContent>
         )}
 
-        {superAdmin && currentTenantId && (
+        {superAdmin && currentTenantId === 2 && (
           <TabsContent value="voice" className="space-y-6">
             <VoiceSettingsCard
               tenantId={currentTenantId}
