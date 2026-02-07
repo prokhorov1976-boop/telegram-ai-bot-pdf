@@ -97,19 +97,24 @@ def handler(event: dict, context) -> dict:
             }
 
         # Отправляем запрос в Voximplant API для инициации звонка
-        # Используем ваш Voximplant аккаунт и правило
+        # Используем CallList API для прямого исходящего звонка
         voximplant_api_url = 'https://api.voximplant.com/platform_api/StartScenarios/'
+        
+        # Данные для передачи в VoxEngine сценарий
+        custom_data = {
+            'phone': phone_number,
+            'voice': voice,
+            'text': greeting,
+            'is_test_call': True,
+            'action': 'test_call'
+        }
         
         voximplant_payload = {
             'account_id': account_id,
             'api_key': api_key,
             'rule_id': rule_id,
-            'script_custom_data': json.dumps({
-                'phone': phone_number,
-                'voice': voice,
-                'text': greeting,
-                'is_test_call': True
-            })
+            'user_id': phone_number,  # Номер для звонка
+            'script_custom_data': json.dumps(custom_data)
         }
 
         print(f"[DEBUG] Initiating call to {phone_number} with voice {voice}")
