@@ -53,6 +53,7 @@ const getDefaultPrompt = (gender: 'female' | 'male') => `Ты — AI-консь�
 const DEFAULT_VOICE_PROMPT = getDefaultPrompt('female');
 
 const VOICE_SETTINGS_URL = 'https://functions.poehali.dev/4e537d54-09a0-458a-b7b1-3687b690e7c1';
+const TEST_CALL_URL = 'https://functions.poehali.dev/3a7c3338-5c5d-492f-9481-cee963105817';
 
 export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSettingsCardProps) {
   const { toast } = useToast();
@@ -175,7 +176,7 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
 
     setIsTestCalling(true);
     try {
-      const response = await authenticatedFetch('https://functions.poehali.dev/3a7c3338-5c5d-492f-9481-cee963105817', {
+      const response = await authenticatedFetch(TEST_CALL_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -206,16 +207,28 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
 
   const handleVoiceChange = (voice: string) => {
     const gender = VOICE_GENDERS[voice] || 'female';
-    const newPrompt = getDefaultPrompt(gender);
+    const currentGender = VOICE_GENDERS[settings.voice] || 'female';
+    const isDefaultPrompt = settings.voice_system_prompt === getDefaultPrompt('female') || 
+                            settings.voice_system_prompt === getDefaultPrompt('male');
+    
     setSettings(prev => ({ 
       ...prev, 
       voice: voice,
-      voice_system_prompt: prev.voice_system_prompt === DEFAULT_VOICE_PROMPT || 
-                           prev.voice_system_prompt === getDefaultPrompt('male') ||
-                           prev.voice_system_prompt === getDefaultPrompt('female')
-        ? newPrompt 
-        : prev.voice_system_prompt
+      voice_system_prompt: isDefaultPrompt ? getDefaultPrompt(gender) : prev.voice_system_prompt
     }));
+  };
+
+  const handleSwitchGender = () => {
+    const currentGender = VOICE_GENDERS[settings.voice] || 'female';
+    const oppositeGender = currentGender === 'female' ? 'male' : 'female';
+    setSettings(prev => ({ 
+      ...prev, 
+      voice_system_prompt: getDefaultPrompt(oppositeGender)
+    }));
+    toast({
+      title: "Промпт изменён",
+      description: `Установлен стандартный промпт для ${oppositeGender === 'female' ? 'женского' : 'мужского'} голоса`
+    });
   };
 
   const handleProviderChange = (provider: string) => {
@@ -319,6 +332,7 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
             setSettings(prev => ({ ...prev, voice_system_prompt: prompt }))
           }
           onResetPrompt={handleResetPrompt}
+          onSwitchGender={handleSwitchGender}
           getDefaultPrompt={getDefaultPrompt}
         />
 

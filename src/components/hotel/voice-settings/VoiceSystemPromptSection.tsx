@@ -9,6 +9,7 @@ interface VoiceSystemPromptSectionProps {
   voice: string;
   onPromptChange: (prompt: string) => void;
   onResetPrompt: () => void;
+  onSwitchGender: () => void;
   getDefaultPrompt: (gender: 'female' | 'male') => string;
 }
 
@@ -17,10 +18,13 @@ export function VoiceSystemPromptSection({
   voice,
   onPromptChange,
   onResetPrompt,
+  onSwitchGender,
   getDefaultPrompt
 }: VoiceSystemPromptSectionProps) {
   const currentGender = VOICE_GENDERS[voice] || 'female';
-  const isCustomPrompt = voiceSystemPrompt !== getDefaultPrompt(currentGender);
+  const oppositeGender = currentGender === 'female' ? 'male' : 'female';
+  const isCustomPrompt = voiceSystemPrompt !== getDefaultPrompt(currentGender) && 
+                         voiceSystemPrompt !== getDefaultPrompt(oppositeGender);
 
   return (
     <div className="space-y-2">
@@ -28,10 +32,16 @@ export function VoiceSystemPromptSection({
         <Label htmlFor="voice-prompt" className="text-base font-semibold">
           System Prompt для голосовых звонков
         </Label>
-        <Button variant="ghost" size="sm" onClick={onResetPrompt}>
-          <Icon name="RotateCcw" size={14} className="mr-1" />
-          Сбросить
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={onSwitchGender}>
+            <Icon name="RefreshCw" size={14} className="mr-1" />
+            {oppositeGender === 'female' ? 'Женский' : 'Мужской'}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onResetPrompt}>
+            <Icon name="RotateCcw" size={14} className="mr-1" />
+            Сбросить
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 p-2 bg-purple-50 border border-purple-200 rounded-lg">

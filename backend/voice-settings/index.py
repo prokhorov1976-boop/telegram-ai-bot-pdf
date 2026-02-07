@@ -105,13 +105,13 @@ def handler(event: dict, context) -> dict:
                 }
 
             voximplant_enabled = body.get('voximplant_enabled', False)
-            voximplant_greeting = body.get('voximplant_greeting', '').replace("'", "''")
-            voice_system_prompt = body.get('voice_system_prompt', '').replace("'", "''")
+            voximplant_greeting = body.get('voximplant_greeting', '')
+            voice_system_prompt = body.get('voice_system_prompt', '')
             voice_model = body.get('voice_model', 'gemini-2.0-flash')
             voice_provider = body.get('voice_provider', 'openrouter')
             max_tokens = int(body.get('max_tokens', 500))
             call_transfer_enabled = body.get('call_transfer_enabled', False)
-            admin_phone_number = body.get('admin_phone_number', '').replace("'", "''")
+            admin_phone_number = body.get('admin_phone_number', '')
             voice = body.get('voice', 'maria')
             
             # Валидация соответствия модели и провайдера
@@ -137,44 +137,27 @@ def handler(event: dict, context) -> dict:
             cur.execute(f"""
                 UPDATE {schema}.tenants 
                 SET 
-                    voximplant_enabled = {voximplant_enabled},
-                    voximplant_greeting = '{voximplant_greeting}'
-                WHERE id = {int(tenant_id)}
-            """)
+                    voximplant_enabled = %s,
+                    voximplant_greeting = %s
+                WHERE id = %s
+            """, (voximplant_enabled, voximplant_greeting, int(tenant_id)))
+
+            # Обновление через JSON для правильной работы с кавычками
+            ai_update = {
+                'voice_system_prompt': voice_system_prompt,
+                'voice_model': voice_model,
+                'voice_provider': voice_provider,
+                'max_tokens': max_tokens,
+                'call_transfer_enabled': call_transfer_enabled,
+                'admin_phone_number': admin_phone_number,
+                'voice': voice
+            }
 
             cur.execute(f"""
                 UPDATE {schema}.tenant_settings
-                SET ai_settings = jsonb_set(
-                    jsonb_set(
-                        jsonb_set(
-                            jsonb_set(
-                                jsonb_set(
-                                    jsonb_set(
-                                        jsonb_set(
-                                            COALESCE(ai_settings, '{{}}'::jsonb),
-                                            '{{voice_system_prompt}}',
-                                            to_jsonb('{voice_system_prompt}'::text)
-                                        ),
-                                        '{{voice_model}}',
-                                        to_jsonb('{voice_model}'::text)
-                                    ),
-                                    '{{voice_provider}}',
-                                    to_jsonb('{voice_provider}'::text)
-                                ),
-                                '{{max_tokens}}',
-                                to_jsonb({max_tokens})
-                            ),
-                            '{{call_transfer_enabled}}',
-                            to_jsonb({str(call_transfer_enabled).lower()})
-                        ),
-                        '{{admin_phone_number}}',
-                        to_jsonb('{admin_phone_number}'::text)
-                    ),
-                    '{{voice}}',
-                    to_jsonb('{voice}'::text)
-                )
-                WHERE tenant_id = {int(tenant_id)}
-            """)
+                SET ai_settings = COALESCE(ai_settings, '{{}}'::jsonb) || %s::jsonb
+                WHERE tenant_id = %s
+            """, (json.dumps(ai_update), int(tenant_id)))
 
             conn.commit()
             cur.close()

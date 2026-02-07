@@ -4,6 +4,9 @@
       "name": "Get voice settings for tenant",
       "method": "GET",
       "path": "/?tenant_id=2",
+      "headers": {
+        "Authorization": "Bearer test_token_for_admin"
+      },
       "expectedStatus": 200,
       "expectedBody": {
         "voximplant_enabled": "boolean",
@@ -11,7 +14,10 @@
         "voice_system_prompt": "string",
         "voice_model": "string",
         "voice_provider": "string",
-        "max_tokens": "number"
+        "max_tokens": "number",
+        "call_transfer_enabled": "boolean",
+        "admin_phone_number": "string",
+        "voice": "string"
       },
       "bodyMatcher": "partial"
     }
