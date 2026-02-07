@@ -199,10 +199,15 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
   };
 
   const handleResetPrompt = () => {
+    const gender = VOICE_GENDERS[settings.voice] || 'female';
     setSettings(prev => ({
       ...prev,
-      voice_system_prompt: DEFAULT_VOICE_PROMPT
+      voice_system_prompt: getDefaultPrompt(gender)
     }));
+    toast({
+      title: "Промпт сброшен",
+      description: `Установлен стандартный промпт для ${gender === 'female' ? 'женского' : 'мужского'} голоса`
+    });
   };
 
   const handleTestCall = async () => {
@@ -525,6 +530,18 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
               Сбросить
             </Button>
           </div>
+          
+          {/* Предпросмотр текущего пола бота */}
+          <div className="flex items-center gap-2 p-2 bg-purple-50 border border-purple-200 rounded-lg">
+            <Icon name="User" size={16} className="text-purple-600" />
+            <span className="text-sm font-medium text-purple-900">
+              Текущий пол бота: {VOICE_GENDERS[settings.voice] === 'female' ? 'Женский' : 'Мужской'}
+            </span>
+            {settings.voice_system_prompt !== getDefaultPrompt(VOICE_GENDERS[settings.voice]) && (
+              <span className="text-xs text-purple-600 ml-auto">(кастомный промпт)</span>
+            )}
+          </div>
+
           <Textarea
             id="voice-prompt"
             value={settings.voice_system_prompt}
