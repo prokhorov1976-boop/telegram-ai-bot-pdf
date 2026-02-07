@@ -53,7 +53,6 @@ const getDefaultPrompt = (gender: 'female' | 'male') => `Ты — AI-консь�
 const DEFAULT_VOICE_PROMPT = getDefaultPrompt('female');
 
 const VOICE_SETTINGS_URL = 'https://functions.poehali.dev/4e537d54-09a0-458a-b7b1-3687b690e7c1';
-const TEST_CALL_URL = 'https://functions.poehali.dev/3a7c3338-5c5d-492f-9481-cee963105817';
 
 export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSettingsCardProps) {
   const { toast } = useToast();
