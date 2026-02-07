@@ -112,13 +112,19 @@ def handler(event: dict, context) -> dict:
             })
         }
 
+        print(f"[DEBUG] Initiating call to {phone_number} with voice {voice}")
+        print(f"[DEBUG] Voximplant payload: {json.dumps(voximplant_payload, ensure_ascii=False)}")
+        
         response = requests.post(voximplant_api_url, data=voximplant_payload, timeout=10)
+        
+        print(f"[DEBUG] Voximplant response status: {response.status_code}")
+        print(f"[DEBUG] Voximplant response: {response.text}")
         
         if response.status_code != 200:
             return {
                 'statusCode': 500,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Failed to initiate call', 'details': response.text}),
+                'body': json.dumps({'error': 'Voximplant API error', 'details': response.text, 'status': response.status_code}),
                 'isBase64Encoded': False
             }
 
