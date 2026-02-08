@@ -226,7 +226,11 @@ def compose_system(system_template: str, context: str, context_ok: bool, channel
     - is_first_message=True: оставляет приветствие как есть
     - is_first_message=False: убирает фразы-приветствия из промпта
     """
-    final_context = context if (context_ok and context) else "Документы пока не загружены"
+    # Для голосовых звонков используем другой fallback текст
+    if channel == 'voice':
+        final_context = context if (context_ok and context) else "Информация по вашему запросу не найдена. Попробуйте уточнить вопрос или я могу соединить с администратором."
+    else:
+        final_context = context if (context_ok and context) else "Документы пока не загружены"
     
     # Для голосовых звонков: убираем приветствие из промпта после первого сообщения
     prompt = system_template

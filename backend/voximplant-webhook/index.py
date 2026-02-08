@@ -172,10 +172,12 @@ def handler(event: dict, context) -> dict:
                         response_text = ai_data.get('message', 'Извините, не смог обработать запрос.')
                         print(f"[Voximplant] AI answer (raw): {response_text}")
                         
-                        # Убираем технические метки из голосового ответа
+                        # Убираем технические метки и эмодзи из голосового ответа
                         import re
                         response_text = re.sub(r'^УТОЧНЕНИЕ\s*\n+', '', response_text, flags=re.IGNORECASE)
                         response_text = re.sub(r'^ОТВЕТ\s*\n+', '', response_text, flags=re.IGNORECASE)
+                        # Убираем эмодзи (символы Unicode выше базового диапазона)
+                        response_text = re.sub(r'[\U0001F300-\U0001F9FF]', '', response_text)
                         response_text = response_text.strip()
                         print(f"[Voximplant] AI answer (cleaned): {response_text}")
                         
