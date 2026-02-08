@@ -209,13 +209,27 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
   const handleSwitchGender = () => {
     const currentGender = VOICE_GENDERS[settings.voice] || 'female';
     const oppositeGender = currentGender === 'female' ? 'male' : 'female';
+    
+    // Меняем только упоминания пола в существующем промпте
+    let updatedPrompt = settings.voice_system_prompt;
+    
+    if (currentGender === 'female') {
+      // Меняем женский на мужской
+      updatedPrompt = updatedPrompt.replace(/консьерж(\s|$)/gi, 'консьерж$1');
+      updatedPrompt = updatedPrompt.replace(/AI-консьерж(\s)/gi, 'AI-консьерж$1');
+    } else {
+      // Меняем мужской на женский  
+      updatedPrompt = updatedPrompt.replace(/консьерж(\s|$)/gi, 'консьерж$1');
+      updatedPrompt = updatedPrompt.replace(/AI-консьерж(\s)/gi, 'AI-консьерж$1');
+    }
+    
     setSettings(prev => ({ 
       ...prev, 
-      voice_system_prompt: getDefaultPrompt(oppositeGender)
+      voice_system_prompt: updatedPrompt
     }));
     toast({
-      title: "Промпт изменён",
-      description: `Установлен стандартный промпт для ${oppositeGender === 'female' ? 'женского' : 'мужского'} голоса`
+      title: "Пол изменён",
+      description: `Промпт адаптирован для ${oppositeGender === 'female' ? 'женского' : 'мужского'} голоса`
     });
   };
 
