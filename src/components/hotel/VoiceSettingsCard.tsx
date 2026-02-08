@@ -194,44 +194,36 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
   };
 
   const handleVoiceChange = (voice: string) => {
-    const gender = VOICE_GENDERS[voice] || 'female';
+    const newGender = VOICE_GENDERS[voice] || 'female';
     const currentGender = VOICE_GENDERS[settings.voice] || 'female';
-    const isDefaultPrompt = settings.voice_system_prompt === getDefaultPrompt('female') || 
-                            settings.voice_system_prompt === getDefaultPrompt('male');
+    
+    // Если пол не изменился, просто меняем голос
+    if (newGender === currentGender) {
+      setSettings(prev => ({ ...prev, voice: voice }));
+      return;
+    }
+    
+    // Адаптируем промпт под новый пол
+    let updatedPrompt = settings.voice_system_prompt;
+    
+    // Проверяем, дефолтный ли промпт
+    const isDefaultPrompt = updatedPrompt === getDefaultPrompt('female') || 
+                            updatedPrompt === getDefaultPrompt('male');
+    
+    if (isDefaultPrompt) {
+      // Если дефолтный - используем дефолтный для нового пола
+      updatedPrompt = getDefaultPrompt(newGender);
+    }
+    // Для кастомных промптов оставляем как есть (пол не влияет на кастомный текст)
     
     setSettings(prev => ({ 
       ...prev, 
       voice: voice,
-      voice_system_prompt: isDefaultPrompt ? getDefaultPrompt(gender) : prev.voice_system_prompt
+      voice_system_prompt: updatedPrompt
     }));
   };
 
-  const handleSwitchGender = () => {
-    const currentGender = VOICE_GENDERS[settings.voice] || 'female';
-    const oppositeGender = currentGender === 'female' ? 'male' : 'female';
-    
-    // Меняем только упоминания пола в существующем промпте
-    let updatedPrompt = settings.voice_system_prompt;
-    
-    if (currentGender === 'female') {
-      // Меняем женский на мужской
-      updatedPrompt = updatedPrompt.replace(/консьерж(\s|$)/gi, 'консьерж$1');
-      updatedPrompt = updatedPrompt.replace(/AI-консьерж(\s)/gi, 'AI-консьерж$1');
-    } else {
-      // Меняем мужской на женский  
-      updatedPrompt = updatedPrompt.replace(/консьерж(\s|$)/gi, 'консьерж$1');
-      updatedPrompt = updatedPrompt.replace(/AI-консьерж(\s)/gi, 'AI-консьерж$1');
-    }
-    
-    setSettings(prev => ({ 
-      ...prev, 
-      voice_system_prompt: updatedPrompt
-    }));
-    toast({
-      title: "Пол изменён",
-      description: `Промпт адаптирован для ${oppositeGender === 'female' ? 'женского' : 'мужского'} голоса`
-    });
-  };
+
 
   const handleProviderChange = (provider: string) => {
     setSettings(prev => ({ 
@@ -332,7 +324,6 @@ export default function VoiceSettingsCard({ tenantId, tenantName }: VoiceSetting
             setSettings(prev => ({ ...prev, voice_system_prompt: prompt }))
           }
           onResetPrompt={handleResetPrompt}
-          onSwitchGender={handleSwitchGender}
           getDefaultPrompt={getDefaultPrompt}
         />
 
