@@ -10,7 +10,7 @@ import { CasesSection } from './CasesSection';
 import { TestimonialsSection } from './TestimonialsSection';
 import { SecuritySection } from './SecuritySection';
 import { VectorTechSection } from './VectorTechSection';
-import { PricingSection } from './PricingSection';
+import { ContactSection } from './ContactSection';
 import { FAQSection } from './FAQSection';
 import { FooterSection } from './FooterSection';
 import SalesChat from '@/components/SalesChat';
@@ -33,11 +33,11 @@ const LandingPage = () => {
   }, [location]);
 
   // Регистрация отключена — подключение новых клиентов только через суперадмина.
-  // Кнопки "Выбрать тариф" ведут к блоку контактов в футере.
+  // Кнопки ведут к блоку "Связаться с нами" (id="pricing" сохранён для SEO-якорей).
   const scrollToContact = () => {
-    const footer = document.getElementById('contact') || document.querySelector('footer');
-    if (footer) {
-      footer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const section = document.getElementById('pricing');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -57,7 +57,7 @@ const LandingPage = () => {
         <TestimonialsSection />
         <VectorTechSection />
         <SecuritySection />
-        <PricingSection onPlanSelect={scrollToContact} />
+        <ContactSection />
         <FAQSection />
         <FooterSection />
         <SalesChat />
