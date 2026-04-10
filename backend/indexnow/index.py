@@ -63,8 +63,7 @@ def handler(event: dict, context) -> dict:
         f"https://{host}#vector-tech",
         f"https://{host}#how-it-works",
         f"https://{host}#pricing",
-        f"https://{host}#faq",
-        f"https://{host}#order-form"
+        f"https://{host}#faq"
     ]
     
     # Подготовка данных

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { HeroSection } from './HeroSection';
@@ -12,32 +12,14 @@ import { SecuritySection } from './SecuritySection';
 import { VectorTechSection } from './VectorTechSection';
 import { PricingSection } from './PricingSection';
 import { FAQSection } from './FAQSection';
-
-import { OrderFormSection } from './OrderFormSection';
 import { FooterSection } from './FooterSection';
 import SalesChat from '@/components/SalesChat';
 import { APP_CONFIG } from '@/config/app';
 
 const LandingPage = () => {
   const location = useLocation();
-  const [selectedTariff, setSelectedTariff] = useState<string>('basic');
 
   useEffect(() => {
-    // Обработка query параметра ?tariff=
-    const params = new URLSearchParams(location.search);
-    const tariffParam = params.get('tariff');
-    
-    if (tariffParam) {
-      setSelectedTariff(tariffParam);
-      // Скролл к форме заказа с задержкой для загрузки DOM
-      setTimeout(() => {
-        const formElement = document.getElementById('order-form');
-        if (formElement) {
-          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 500);
-    }
-
     // Обработка hash (#pricing, #faq и т.д.)
     if (location.hash) {
       const elementId = location.hash.substring(1);
@@ -50,9 +32,13 @@ const LandingPage = () => {
     }
   }, [location]);
 
-  const scrollToForm = (tariffId: string) => {
-    setSelectedTariff(tariffId);
-    document.getElementById('order-form')?.scrollIntoView({ behavior: 'smooth' });
+  // Регистрация отключена — подключение новых клиентов только через суперадмина.
+  // Кнопки "Выбрать тариф" ведут к блоку контактов в футере.
+  const scrollToContact = () => {
+    const footer = document.getElementById('contact') || document.querySelector('footer');
+    if (footer) {
+      footer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   return (
@@ -62,7 +48,7 @@ const LandingPage = () => {
         <meta property="og:url" content={APP_CONFIG.baseUrl} />
       </Helmet>
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <HeroSection onOrderClick={() => scrollToForm('basic')} />
+        <HeroSection onOrderClick={scrollToContact} />
         <FeaturesSection />
         <WeDoEverythingSection />
         <HowItWorksSection />
@@ -71,9 +57,8 @@ const LandingPage = () => {
         <TestimonialsSection />
         <VectorTechSection />
         <SecuritySection />
-        <PricingSection onPlanSelect={scrollToForm} />
+        <PricingSection onPlanSelect={scrollToContact} />
         <FAQSection />
-        <OrderFormSection selectedTariff={selectedTariff} />
         <FooterSection />
         <SalesChat />
       </div>

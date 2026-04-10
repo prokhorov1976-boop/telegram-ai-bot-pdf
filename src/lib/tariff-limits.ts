@@ -16,57 +16,40 @@ export interface TariffLimits {
   hasStats: boolean;
 }
 
+// Все функции доступны всем тенантам.
+// Тарифы оставлены только как метки для обратной совместимости —
+// по возможностям они идентичны.
+const ALL_FEATURES_ENABLED = {
+  maxPdfDocuments: -1,
+  hasWebChat: true,
+  hasTelegram: true,
+  hasVK: true,
+  hasMAX: true,
+  hasVoice: true,
+  hasAISettings: true,
+  hasAdvancedAISettings: true,
+  hasCustomization: true,
+  hasPersonalManager: true,
+  hasWidget: true,
+  hasPageSettings: true,
+  hasStats: true
+} as const;
+
 export const TARIFF_LIMITS: Record<string, TariffLimits> = {
   basic: {
     id: 'basic',
     name: 'Старт',
-    maxPdfDocuments: 10,
-    hasWebChat: true,
-    hasTelegram: false,
-    hasVK: false,
-    hasMAX: false,
-    hasVoice: false,
-    hasAISettings: false,
-    hasAdvancedAISettings: false,
-    hasCustomization: false,
-    hasPersonalManager: false,
-    hasWidget: true,
-    hasPageSettings: true,
-    hasStats: true
+    ...ALL_FEATURES_ENABLED
   },
   professional: {
     id: 'professional',
     name: 'Бизнес',
-    maxPdfDocuments: 25,
-    hasWebChat: true,
-    hasTelegram: true,
-    hasVK: false,
-    hasMAX: false,
-    hasVoice: false,
-    hasAISettings: false,
-    hasAdvancedAISettings: false,
-    hasCustomization: false,
-    hasPersonalManager: false,
-    hasWidget: true,
-    hasPageSettings: true,
-    hasStats: true
+    ...ALL_FEATURES_ENABLED
   },
   enterprise: {
     id: 'enterprise',
     name: 'Премиум',
-    maxPdfDocuments: 100,
-    hasWebChat: true,
-    hasTelegram: true,
-    hasVK: true,
-    hasMAX: true,
-    hasVoice: true,
-    hasAISettings: false,
-    hasAdvancedAISettings: false,
-    hasCustomization: true,
-    hasPersonalManager: true,
-    hasWidget: true,
-    hasPageSettings: true,
-    hasStats: true
+    ...ALL_FEATURES_ENABLED
   }
 };
 
@@ -77,19 +60,15 @@ export function getTariffLimits(tariffId: string | null): TariffLimits {
   return TARIFF_LIMITS[tariffId];
 }
 
-export function canUploadMoreDocuments(currentCount: number, tariffId: string | null): boolean {
-  const isSuperAdminViewing = sessionStorage.getItem('superadmin_viewing_tenant') === 'true';
-  if (isSuperAdminViewing) return true;
-  
-  const limits = getTariffLimits(tariffId);
-  if (limits.maxPdfDocuments === -1) return true;
-  return currentCount < limits.maxPdfDocuments;
+export function canUploadMoreDocuments(_currentCount: number, _tariffId: string | null): boolean {
+  // Все функции доступны всем тенантам — лимитов на документы нет.
+  return true;
 }
 
-export function hasFeatureAccess(feature: keyof Omit<TariffLimits, 'id' | 'name' | 'maxPdfDocuments'>, tariffId: string | null): boolean {
-  const isSuperAdminViewing = sessionStorage.getItem('superadmin_viewing_tenant') === 'true';
-  if (isSuperAdminViewing) return true;
-  
-  const limits = getTariffLimits(tariffId);
-  return limits[feature];
+export function hasFeatureAccess(
+  _feature: keyof Omit<TariffLimits, 'id' | 'name' | 'maxPdfDocuments'>,
+  _tariffId: string | null
+): boolean {
+  // Все функции доступны всем тенантам.
+  return true;
 }
